@@ -1,0 +1,23 @@
+API
+
+Artikel (DONE)
+Per Artikel (DONE)
+
+Kategori Artikel (DONE)
+Kategori Artikel + Artikel (DONE)
+
+Struktur (DONE)
+Struktur + Member (DONE)
+
+
+Podcast (DONE)
+
+Galeri (DONE)
+Galeri + Image Galeri (DONE)
+
+SOTM (DONE)
+
+Login
+
+User
+Per User
