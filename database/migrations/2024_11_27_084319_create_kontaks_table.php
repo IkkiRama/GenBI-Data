@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('judul');
             $table->text('pesan');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

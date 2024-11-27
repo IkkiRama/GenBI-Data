@@ -38,7 +38,8 @@ class PodcastResource extends Resource
                 Forms\Components\TextInput::make('youtubeUrl')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\DatePicker::make('date')
+                Forms\Components\TextInput::make('date')
+                    ->numeric()
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required()
@@ -51,13 +52,10 @@ class PodcastResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('videoId')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('youtubeUrl')
+                    ->sortable()
                     ->searchable(),
                 Tables\Columns\TextColumn::make('date')
-                    ->date()
+                    ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
@@ -77,6 +75,7 @@ class PodcastResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -10,6 +10,8 @@ class ListSOTMS extends ListRecords
 {
     protected static string $resource = SOTMResource::class;
 
+    protected static ?string $title = "SOTM";
+
     protected function getHeaderActions(): array
     {
         return [

@@ -20,6 +20,12 @@ class StrukturResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'Partial Halaman';
+
+    protected static ?string $navigationLabel = 'Struktur';
+
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -49,7 +55,10 @@ class StrukturResource extends Resource
                     ])
                     ->preload()
                     ->required(),
-                Forms\Components\FileUpload::make('foto'),
+                Forms\Components\FileUpload::make('foto')
+                    ->required()
+                    ->image()
+                    ->directory('struktur'),
                 Forms\Components\Textarea::make('quote')
                     ->columnSpanFull(),
             ]);
@@ -87,6 +96,7 @@ class StrukturResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

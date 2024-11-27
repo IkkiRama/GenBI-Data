@@ -4,6 +4,7 @@ use App\Http\Controllers\API\ArtikelController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\GaleriController;
 use App\Http\Controllers\API\KategoriArtikelController;
+use App\Http\Controllers\API\KontakController;
 use App\Http\Controllers\API\PodcastController;
 use App\Http\Controllers\API\SOTMController;
 use App\Http\Controllers\API\StrukturController;
@@ -34,6 +35,8 @@ Route::get('/galeri', [GaleriController::class, 'index']);
 Route::get('/galeri/{id}', [GaleriController::class, 'show']);
 
 Route::get('/sotm', [SOTMController::class, 'index']);
+
+Route::post('/kontak', [KontakController::class, 'store']);
 
 Route::get('/login', [AuthController::class, 'index']);
 Route::get('/logout', [AuthController::class, 'index']);

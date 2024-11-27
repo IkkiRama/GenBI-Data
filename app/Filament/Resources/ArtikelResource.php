@@ -59,7 +59,6 @@ class ArtikelResource extends Resource
                     ->required()
                     ->label("Publikasikan"),
                 Forms\Components\FileUpload::make('thumbnail')
-                    ->required()
                     ->image()
                     ->directory('artikel')
                     ->columnSpanFull(),

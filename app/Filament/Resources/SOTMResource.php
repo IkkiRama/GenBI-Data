@@ -23,13 +23,23 @@ class SOTMResource extends Resource
 
     protected static ?string $navigationLabel = 'SOTM';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                //
+                Forms\Components\Select::make('jenis')
+                    ->options([
+                        "deputi" => "Deputi",
+                        "staff" => "Staff",
+                    ])
+                    ->preload()
+                    ->required(),
+                Forms\Components\FileUpload::make('image')
+                    ->required()
+                    ->image()
+                    ->directory('sotm'),
             ]);
     }
 
@@ -37,13 +47,18 @@ class SOTMResource extends Resource
     {
         return $table
             ->columns([
-                //
+                Tables\Columns\TextColumn::make('jenis')
+                    ->badge()
+                    ->label("Jenis SOTM")
+                    ->searchable(),
+                Tables\Columns\ImageColumn::make('image'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

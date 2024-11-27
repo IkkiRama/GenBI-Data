@@ -1,3 +1,11 @@
+Struktur bikin fitur import User
+Translation
+Ubah Header Tiap fitur
+Bikin Dokumentasi pakai scramble
+
+
+
+
 API
 
 Artikel (DONE)
@@ -17,7 +25,20 @@ Galeri + Image Galeri (DONE)
 
 SOTM (DONE)
 
+kontak STORE
+
 Login
 
 User
 Per User
+
+
+php artisan shield:setup
+
+php artisan shield:install admin
+
+php artisan shield:generate --all
+
+php artisan shield:super-admin
+
+php artisan make:filament-resource categoryNilai --generate

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('videoId');
             $table->string('youtubeUrl');
-            $table->date('date');
+            $table->integer('date');
             $table->text('description');
             $table->timestamps();
             $table->softDeletes();

@@ -4,14 +4,18 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Filament\Resources\UserResource\RelationManagers;
+
 use App\Models\User;
+
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+
 
 class UserResource extends Resource
 {
@@ -26,16 +30,30 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('foto')
-                    ->maxLength(255),
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\DateTimePicker::make('email_verified_at'),
+                Forms\Components\FileUpload::make('foto')
+                    ->columnSpanFull()
+                    ->image()
+                    ->directory('user'),
+                Forms\Components\DateTimePicker::make('email_verified_at')
+                    ->default(now()) // Set the default value to the current datetime
+                    ->columnSpanFull()
+                    ->format('Y-m-d H:i:s'),
+                Forms\Components\Select::make('roles')
+                    ->relationship('roles', 'name')
+                    ->multiple()
+                    ->preload()
+                    ->required()
+                    ->searchable(),
                 Forms\Components\TextInput::make('password')
                     ->password()
-                    ->required()
+                    ->revealable()
+                    ->required(fn (string $context):bool => $context === "create")
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
+                    ->dehydrated(fn ($state) => filled($state))
                     ->maxLength(255),
             ]);
     }
@@ -71,6 +89,7 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
