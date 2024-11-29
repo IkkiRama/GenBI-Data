@@ -1,7 +1,7 @@
 Struktur bikin fitur import User
-Translation
-Ubah Header Tiap fitur
 Bikin Dokumentasi pakai scramble
+Translation (DONE)
+Ubah Header Tiap fitur (DONE)
 
 
 
@@ -25,9 +25,10 @@ Galeri + Image Galeri (DONE)
 
 SOTM (DONE)
 
-kontak STORE
+kontak STORE (DONE)
 
-Login
+Login (DONE)
+Logout (DONE)
 
 User
 Per User

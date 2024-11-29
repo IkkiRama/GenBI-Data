@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Kontak;
 use Illuminate\Http\Request;
 
 class KontakController extends Controller
@@ -28,7 +29,30 @@ class KontakController extends Controller
      */
     public function store(Request $request)
     {
+        $headers = [
+            'Content-Type' => 'application/json',
+            'X-Powered-By' => 'Rifki Romadhan',
+            'X-Content-Language' => 'id',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ];
 
+        $validated = $request->validate([
+            'nama'  => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'judul' => 'required|string|max:255',
+            'pesan' => 'required|string',
+        ]);
+
+        // Simpan data ke dalam database
+        $contact = Kontak::create($validated);
+
+        // Kembalikan response
+        return response()->json([
+            'success' => true,
+            'message' => 'Kontak berhasil disimpan.',
+            'data'    => $contact,
+        ], 201, $headers);
     }
 
     /**

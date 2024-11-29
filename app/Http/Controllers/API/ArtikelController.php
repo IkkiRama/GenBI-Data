@@ -23,7 +23,7 @@ class ArtikelController extends Controller
 
         try {
 
-            $artikel = Artikel::latest()->paginate(5);
+            $artikel = Artikel::where("is_published", 1)->latest()->paginate(5);
 
             if (empty($artikel)) {
                 return response()->json([
@@ -82,7 +82,10 @@ class ArtikelController extends Controller
 
         try {
 
-            $artikel = Artikel::where("slug", $slug)->firstOrFail();
+            $artikel = Artikel::where([
+                ["slug", $slug],
+                ["is_published", 1]
+            ])->firstOrFail();
 
             if (empty($artikel)) {
                 throw new \Exception("Artikel tidak ditemukan.");

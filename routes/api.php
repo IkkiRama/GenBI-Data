@@ -16,7 +16,11 @@ use Illuminate\Support\Facades\Route;
 //     return $request->user();
 // })->middleware('auth:sanctum');
 
-Route::resource('user', UserController::class);
+Route::group(["middleware" => "auth:sanctum"], function() {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::resource('user', UserController::class);
+});
+
 
 Route::get('/artikel', [ArtikelController::class, 'index']);
 Route::get('/artikel/{slug}', [ArtikelController::class, 'show']);
@@ -38,8 +42,8 @@ Route::get('/sotm', [SOTMController::class, 'index']);
 
 Route::post('/kontak', [KontakController::class, 'store']);
 
-Route::get('/login', [AuthController::class, 'index']);
-Route::get('/logout', [AuthController::class, 'index']);
+Route::post('/login', [AuthController::class, 'login']);
+
 Route::get('/dashboard', [AuthController::class, 'index']);
 
 
