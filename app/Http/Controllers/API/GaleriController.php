@@ -66,7 +66,7 @@ class GaleriController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $slug)
     {
         $headers = [
             'Content-Type' => 'application/json',
@@ -78,7 +78,7 @@ class GaleriController extends Controller
 
         try {
 
-            $galeri = Galeri::where("id", $id)->firstOrFail();
+            $galeri = Galeri::where("slug", $slug)->firstOrFail();
             $imageGaleri = ImageGaleri::where("galeri_id", $galeri->id)->get();
 
             if (empty($galeri)) {
@@ -91,7 +91,7 @@ class GaleriController extends Controller
                     "galeri" => $galeri,
                     "image_galeri" => $imageGaleri
                 ],
-                "message" => "Galeri ".$id." Berhasil di Tampilkan"
+                "message" => "Galeri ".$slug." Berhasil di Tampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {

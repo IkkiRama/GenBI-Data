@@ -36,7 +36,7 @@ Route::get('/podcast', [PodcastController::class, 'index']);
 
 //
 Route::get('/galeri', [GaleriController::class, 'index']);
-Route::get('/galeri/{id}', [GaleriController::class, 'show']);
+Route::get('/galeri/{slug}', [GaleriController::class, 'show']);
 
 Route::get('/sotm', [SOTMController::class, 'index']);
 

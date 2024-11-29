@@ -20,7 +20,6 @@ class MembersRelationManager extends RelationManager
             ->schema([
                 Forms\Components\TextInput::make('nama')
                     ->required()
-                    ->columnSpanFull()
                     ->maxLength(255),
                 Forms\Components\Select::make('universitas')
                     ->options([
@@ -39,7 +38,10 @@ class MembersRelationManager extends RelationManager
                         "lingkungan" => "LINGKUNGAN",
                         "kesehatan" => "KESEHATAN",
                         "medeks" => "MEDEKS",
-                    ])
+                    ]),
+                Forms\Components\TextInput::make('departemen')
+                    ->required()
+                    ->maxLength(255),
             ]);
     }
 
@@ -51,6 +53,7 @@ class MembersRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('nama'),
                 Tables\Columns\TextColumn::make('universitas'),
                 Tables\Columns\TextColumn::make('bidang'),
+                Tables\Columns\TextColumn::make('departemen'),
             ])
             ->filters([
                 //

@@ -8,6 +8,7 @@ use Filament\Actions\CreateAction;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\StrukturResource;
+use App\Imports\ImportMember;
 use App\Imports\ImportStruktur;
 
 class ListStrukturs extends ListRecords
@@ -30,6 +31,12 @@ class ListStrukturs extends ListRecords
     function save() {
         if ($this->file !== '') {
             Excel::import(new ImportStruktur, $this->file);
+        }
+    }
+
+    function uploadMember() {
+        if ($this->file !== '') {
+            Excel::import(new ImportMember, $this->file);
         }
     }
 }

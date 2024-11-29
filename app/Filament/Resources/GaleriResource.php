@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Set;
+use Illuminate\Support\Str;
+
 
 class GaleriResource extends Resource
 {
@@ -33,6 +36,12 @@ class GaleriResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('title')
+                    ->required()
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                Forms\Components\TextInput::make('slug')
+                    ->readOnly()
                     ->required()
                     ->maxLength(255),
                 Forms\Components\DatePicker::make('waktu')

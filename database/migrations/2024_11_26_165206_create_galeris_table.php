@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('galeris', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique();
             $table->date('waktu');
             $table->string('tempat');
             $table->string('thumbnail');

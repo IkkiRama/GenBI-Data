@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('nama');
             $table->string('universitas');
             $table->string('bidang');
+            $table->string('member');
             $table->timestamps();
             $table->softDeletes();
         });
