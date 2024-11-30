@@ -44,7 +44,5 @@ Route::post('/kontak', [KontakController::class, 'store']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/dashboard', [AuthController::class, 'index']);
-
 
 
