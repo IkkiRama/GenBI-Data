@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+
+use Carbon\Carbon;
 use App\Models\Artikel;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ArtikelController extends Controller
@@ -23,7 +26,7 @@ class ArtikelController extends Controller
 
         try {
 
-            $artikel = Artikel::where("is_published", 1)->latest()->paginate(5);
+            $artikel = Artikel::withoutTrashed()->where("is_published", 1)->latest()->paginate(7);
 
             if (empty($artikel)) {
                 return response()->json([
@@ -40,6 +43,91 @@ class ArtikelController extends Controller
             ], 200, $headers);
 
         } catch (\Exception $e) {
+
+            return response()->json([
+                "success" => false,
+                "data" => null,
+                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
+            ], 500, $headers);
+
+        }
+
+    }
+
+    /**
+     * Randomly recommends 3 articles.
+     */
+    public function rekomendasi(): JsonResponse
+    {
+        try {
+            // Mengambil 3 artikel secara acak
+            $artikels = Artikel::inRandomOrder()->limit(4)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $artikels,
+                'message' => 'Artikel berhasil diambil secara acak.'
+            ], 200);
+        } catch (\Exception $e) {
+            // Tangani error
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Retrieve the 4 most recent articles for the home page.
+     */
+    public function homeArtikel(): JsonResponse
+    {
+        try {
+            // Mengambil 4 artikel terbaru berdasarkan created_at
+            $artikels = Artikel::orderBy('created_at', 'desc')->limit(4)->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $artikels,
+                'message' => '4 artikel terbaru berhasil diambil.'
+            ], 200);
+        } catch (\Exception $e) {
+            // Tangani error
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function getTrendingMonthlyArtikel() : JsonResponse {
+        $headers = [
+            'Content-Type' => 'application/json',
+            'X-Powered-By' => 'Rifki Romadhan',
+            'X-Content-Language' => 'id',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ];
+
+        // Hitung tanggal satu bulan ke belakang
+        $oneMonthAgo = Carbon::now()->subMonth();
+
+        try{
+
+            // Ambil artikel dengan views tertinggi selama satu bulan terakhir
+            $trendingArtikel = Artikel::where('is_published', true)
+                ->where('published_at', '>=', $oneMonthAgo) // Artikel yang diterbitkan dalam 1 bulan terakhir
+                ->orderBy('views', 'desc') // Urutkan berdasarkan views tertinggi
+                ->limit(4) // Batasi jumlah artikel
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $trendingArtikel,
+                'message' => 'Artikel Trending Bulanan Berhasil Ditampilkan',
+            ], 200, $headers);
+
+        }catch (\Exception $e) {
 
             return response()->json([
                 "success" => false,

@@ -23,13 +23,16 @@ Route::group(["middleware" => "auth:sanctum"], function() {
 
 
 Route::get('/artikel', [ArtikelController::class, 'index']);
+Route::get('/artikel/rekomendasi', [ArtikelController::class, 'rekomendasi']);
+Route::get('/artikel/homeArtikel', [ArtikelController::class, 'homeArtikel']);
+Route::get('/artikel/trending-monthly', [ArtikelController::class, 'getTrendingMonthlyArtikel']);
 Route::get('/artikel/{slug}', [ArtikelController::class, 'show']);
 
 Route::get('/kategori-artikel', [KategoriArtikelController::class, 'index']);
 Route::get('/kategori-artikel/{slug}', [KategoriArtikelController::class, 'show']);
 
 Route::get('/struktur', [StrukturController::class, 'index']);
-Route::get('/struktur/{id}', [StrukturController::class, 'show']);
+Route::get('/struktur/{periode}/{jabatan}', [StrukturController::class, 'show']);
 
 Route::get('/podcast', [PodcastController::class, 'index']);
 

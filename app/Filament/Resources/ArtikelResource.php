@@ -127,6 +127,7 @@ class ArtikelResource extends Resource
     {
         return [
             'index' => Pages\ListArtikels::route('/'),
+            'create' => Pages\CreateArtikel::route('/create'),
         ];
     }
 

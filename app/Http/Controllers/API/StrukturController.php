@@ -70,7 +70,7 @@ class StrukturController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $periode, string $jabatan)
     {
         $headers = [
             'Content-Type' => 'application/json',
@@ -82,7 +82,11 @@ class StrukturController extends Controller
 
         try {
 
-            $struktur = Struktur::where("id", $id)->firstOrFail();
+            $struktur = Struktur::where([
+                "periode" => $periode,
+                "jabatan" => $jabatan
+            ])->firstOrFail();
+
             $member = Member::where("struktur_id", $struktur->id)->get();
 
             if (empty($struktur)) {
@@ -95,7 +99,7 @@ class StrukturController extends Controller
                     "struktur" => $struktur,
                     "member" => $member
                 ],
-                "message" => "Struktur ".$id." Berhasil di Tampilkan"
+                "message" => "Struktur Berhasil di Tampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {

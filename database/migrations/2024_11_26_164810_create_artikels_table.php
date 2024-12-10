@@ -33,6 +33,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('artikels', function (Blueprint $table) {
+            $table->dropColumn('deleted_at');
+        });
         Schema::dropIfExists('artikels');
     }
 };
