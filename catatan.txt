@@ -1,0 +1,47 @@
+Struktur bikin fitur import User
+Bikin Dokumentasi pakai scramble
+Translation (DONE)
+Ubah Header Tiap fitur (DONE)
+
+
+
+
+API
+
+Artikel (DONE)
+Per Artikel (DONE)
+
+Kategori Artikel (DONE)
+Kategori Artikel + Artikel (DONE)
+
+Struktur (DONE)
+Struktur + Member (DONE)
+
+
+Podcast (DONE)
+
+Galeri (DONE)
+Galeri + Image Galeri (DONE)
+
+SOTM (DONE)
+
+kontak STORE (DONE)
+
+Login (DONE)
+Logout (DONE)
+
+User
+Per User
+
+
+php artisan shield:setup
+
+php artisan shield:install admin
+
+php artisan shield:generate --all
+
+php artisan shield:super-admin
+
+php artisan make:filament-resource categoryNilai --generate
+
+php artisan make:filament-resource categoryNilai --generate --soft-deletes
