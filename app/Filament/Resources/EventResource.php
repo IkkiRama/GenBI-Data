@@ -56,7 +56,13 @@ class EventResource extends Resource
                     ->required()
                     ->maxLength(20),
                 Forms\Components\FileUpload::make('image')
+                    ->image()
+                    ->directory('event')
                     ->columnSpanFull(),
+                Forms\Components\Textarea::make('keyword')
+                    ->required(),
+                Forms\Components\Textarea::make('excerpt')
+                    ->required(),
                 Forms\Components\RichEditor::make('deskripsi')
                     ->required()
                     ->columnSpanFull(),
@@ -124,6 +130,7 @@ class EventResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->orderBy('tanggal', 'asc');
     }
 }

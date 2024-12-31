@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\Struktur;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class StrukturController extends Controller
@@ -24,7 +25,22 @@ class StrukturController extends Controller
 
         try {
 
-            $struktur = Struktur::withoutTrashed()->latest()->get();
+            // Tentukan periode berdasarkan tahun sekarang
+            $currentYear = Carbon::now()->year;
+            $currentMonth = Carbon::now()->month;
+
+            // Logika penentuan periode
+            if ($currentMonth < 4) {
+                // Jika sebelum April, gunakan tahun lalu - tahun sekarang
+                $previousYear = $currentYear - 1;
+                $periode = "$previousYear-$currentYear";
+            } else {
+                // Jika April atau setelahnya, gunakan tahun sekarang - tahun depan
+                $nextYear = $currentYear + 1;
+                $periode = "$currentYear-$nextYear";
+            }
+
+            $struktur = Struktur::withoutTrashed()->where("periode", $periode)->latest()->get();
 
             if (empty($struktur)) {
                 return response()->json([

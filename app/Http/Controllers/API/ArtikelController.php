@@ -130,9 +130,6 @@ class ArtikelController extends Controller
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
         ];
 
-        // Hitung tanggal satu bulan ke belakang
-        $oneMonthAgo = Carbon::now()->subMonth();
-
         try{
 
             // Ambil artikel dengan views tertinggi selama satu bulan terakhir
@@ -141,7 +138,6 @@ class ArtikelController extends Controller
                 ->withoutTrashed()
                 ->where('is_published', true)
                 ->inRandomOrder()
-                ->where('published_at', '>=', $oneMonthAgo) // Artikel yang diterbitkan dalam 1 bulan terakhir
                 ->with("kategori_artikel", "user")
                 ->limit(3) // Batasi jumlah artikel
                 ->get();
@@ -240,7 +236,9 @@ class ArtikelController extends Controller
             $artikel = Artikel::where([
                 ["slug", $slug],
                 ["is_published", 1]
-            ])->withoutTrashed()->with("kategori_artikel", "user")->firstOrFail();
+            ])
+            ->withoutTrashed()
+            ->with("komentar", "kategori_artikel", "user")->firstOrFail();
 
             if (empty($artikel)) {
                 throw new \Exception("Artikel tidak ditemukan.");

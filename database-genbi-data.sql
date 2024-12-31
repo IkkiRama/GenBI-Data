@@ -590,18 +590,18 @@ CREATE TABLE IF NOT EXISTS `pemateris` (
 
 -- Membuang data untuk tabel genbi_data.pemateris: ~12 rows (lebih kurang)
 INSERT INTO `pemateris` (`id`, `event_id`, `nama`, `gambar`, `created_at`, `updated_at`, `deleted_at`) VALUES
-	(1, 1, 'Nu\'man Mumtaz', '01JFXSPBY5GFHDKFC76XKQFGF4.jpg', '2024-12-24 19:17:51', '2024-12-24 19:17:51', NULL),
-	(2, 1, 'Nila Khoirun Naili', '01JFXT84Q0BJ67VH1GKNCPQHJB.jpg', '2024-12-24 19:27:34', '2024-12-24 19:27:34', NULL),
-	(3, 1, 'Muhammad Raja Dinar Albani', '01JFXTB5C6WFXHZ5D6JW86S18R.jpg', '2024-12-24 19:29:13', '2024-12-24 19:29:13', NULL),
-	(4, 2, 'Tifani Azzahra Mutiara P', '01JFXTWEMNK38AQNGSXTR6HB4P.png', '2024-12-24 19:38:39', '2024-12-24 19:38:39', NULL),
-	(5, 2, 'Selviana Reginata', '01JFXV1DXES872FVRAX2B58M7B.png', '2024-12-24 19:41:22', '2024-12-24 19:41:22', NULL),
-	(6, 2, 'Nu\'man Mumtaz', '01JFXVAW0CDJV10XCG7JP0KK85.jpg', '2024-12-24 19:46:32', '2024-12-24 19:46:32', NULL),
-	(7, 2, 'Zaskia Putri Asih', '01JFXVJ1N0GN080EE067E2FF7W.png', '2024-12-24 19:50:27', '2024-12-24 19:50:27', NULL),
-	(8, 2, 'Pani Dwi Yanti', '01JFXVKS2JHQCRD73EZPAPKT93.png', '2024-12-24 19:51:24', '2024-12-24 19:51:24', NULL),
-	(9, 1, 'Pani Dwi Yanti', '01JFXVP05R1RE8TAPCCY5E36F7.png', '2024-12-24 19:52:36', '2024-12-24 19:52:36', NULL),
-	(10, 1, 'Anis Ma\'rifah', '01JFXVTW3XW65HNPR4CK9X5AGV.png', '2024-12-24 19:55:16', '2024-12-24 19:55:16', NULL),
-	(11, 1, 'Amita Rizki', '01JFXVXZPPBRVG9SASE4JH0EET.png', '2024-12-24 19:56:58', '2024-12-24 19:56:58', NULL),
-	(12, 2, 'Puskesmas Cilongok', '01JFXW20Q976484ZP4NCJ5TFV9.jpg', '2024-12-24 19:59:10', '2024-12-24 19:59:10', NULL);
+	(1, 1, 'Nu\'man Mumtaz', 'event/01JFXSPBY5GFHDKFC76XKQFGF4.jpg', '2024-12-24 19:17:51', '2024-12-24 19:17:51', NULL),
+	(2, 1, 'Nila Khoirun Naili', 'event/01JFXT84Q0BJ67VH1GKNCPQHJB.jpg', '2024-12-24 19:27:34', '2024-12-24 19:27:34', NULL),
+	(3, 1, 'Muhammad Raja Dinar Albani', 'event/01JFXTB5C6WFXHZ5D6JW86S18R.jpg', '2024-12-24 19:29:13', '2024-12-24 19:29:13', NULL),
+	(4, 2, 'Tifani Azzahra Mutiara P', 'event/01JFXTWEMNK38AQNGSXTR6HB4P.png', '2024-12-24 19:38:39', '2024-12-24 19:38:39', NULL),
+	(5, 2, 'Selviana Reginata', 'event/01JFXV1DXES872FVRAX2B58M7B.png', '2024-12-24 19:41:22', '2024-12-24 19:41:22', NULL),
+	(6, 2, 'Nu\'man Mumtaz', 'event/01JFXVAW0CDJV10XCG7JP0KK85.jpg', '2024-12-24 19:46:32', '2024-12-24 19:46:32', NULL),
+	(7, 2, 'Zaskia Putri Asih', 'event/01JFXVJ1N0GN080EE067E2FF7W.png', '2024-12-24 19:50:27', '2024-12-24 19:50:27', NULL),
+	(8, 2, 'Pani Dwi Yanti', 'event/01JFXVKS2JHQCRD73EZPAPKT93.png', '2024-12-24 19:51:24', '2024-12-24 19:51:24', NULL),
+	(9, 1, 'Pani Dwi Yanti', 'event/01JFXVP05R1RE8TAPCCY5E36F7.png', '2024-12-24 19:52:36', '2024-12-24 19:52:36', NULL),
+	(10, 1, 'Anis Ma\'rifah', 'event/01JFXVTW3XW65HNPR4CK9X5AGV.png', '2024-12-24 19:55:16', '2024-12-24 19:55:16', NULL),
+	(11, 1, 'Amita Rizki', 'event/01JFXVXZPPBRVG9SASE4JH0EET.png', '2024-12-24 19:56:58', '2024-12-24 19:56:58', NULL),
+	(12, 2, 'Puskesmas Cilongok', 'event/01JFXW20Q976484ZP4NCJ5TFV9.jpg', '2024-12-24 19:59:10', '2024-12-24 19:59:10', NULL);
 
 -- membuang struktur untuk table genbi_data.permissions
 CREATE TABLE IF NOT EXISTS `permissions` (

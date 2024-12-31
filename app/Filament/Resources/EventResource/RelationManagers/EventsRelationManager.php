@@ -22,6 +22,8 @@ class EventsRelationManager extends RelationManager
                     ->required()
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('gambar')
+                    ->image()
+                    ->directory('pemateri')
                     ->required(),
             ]);
     }

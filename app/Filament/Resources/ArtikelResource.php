@@ -58,11 +58,13 @@ class ArtikelResource extends Resource
                 Forms\Components\Toggle::make('is_published')
                     ->required()
                     ->label("Publikasikan"),
+                Forms\Components\Textarea::make('excerpt')
+                    ->required(),
+                Forms\Components\Textarea::make('keyword')
+                    ->required(),
                 Forms\Components\FileUpload::make('thumbnail')
                     ->image()
                     ->directory('artikel')
-                    ->columnSpanFull(),
-                Forms\Components\Textarea::make('excerpt')
                     ->columnSpanFull(),
                 Forms\Components\RichEditor::make('content')
                     ->required()
@@ -83,6 +85,9 @@ class ArtikelResource extends Resource
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_published')
                     ->boolean(),
+                Tables\Columns\TextColumn::make('published_at')
+                    ->date()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

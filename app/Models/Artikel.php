@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Artikel extends Model
@@ -19,5 +20,10 @@ class Artikel extends Model
     public function kategori_artikel(): BelongsTo
     {
         return $this->belongsTo(KategoriArtikel::class, "kategori_id");
+    }
+
+    public function komentar(): HasMany
+    {
+        return $this->hasMany(Komentar::class, 'artikel_id');
     }
 }

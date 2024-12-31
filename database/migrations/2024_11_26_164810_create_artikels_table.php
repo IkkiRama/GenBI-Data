@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('slug')->unique(); // URL-friendly slug
             $table->string('thumbnail')->nullable(); // Thumbnail artikel (opsional)
             $table->text('excerpt')->nullable(); // Cuplikan atau ringkasan artikel (opsional)
+            $table->text('keyword')->nullable(); // Cuplikan atau ringkasan artikel (opsional)
             $table->text('content'); // Konten artikel
             $table->boolean('is_published')->default(false); // Status publikasi
             $table->timestamp('published_at')->nullable(); // Tanggal publikasi artikel (opsional)

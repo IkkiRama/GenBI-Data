@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('nama')->unique();
             $table->string('slug')->unique();
             $table->string('image');
+            $table->text('keyword');
+            $table->text('excerpt');
             $table->text('deskripsi');
             $table->string('tempat');
             $table->date('tanggal');

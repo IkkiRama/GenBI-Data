@@ -10,6 +10,8 @@ use App\Http\Controllers\API\SOTMController;
 use App\Http\Controllers\API\StrukturController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\EventController;
+use App\Http\Controllers\KomentarController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,8 @@ Route::group(["middleware" => "auth:sanctum"], function() {
     Route::resource('user', UserController::class);
 });
 
+
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 
 Route::get('/artikel', [ArtikelController::class, 'index']);
 Route::get('/artikel/rekomendasi', [ArtikelController::class, 'rekomendasi']);
@@ -41,6 +45,8 @@ Route::get('/struktur/{periode}/{jabatan}', [StrukturController::class, 'show'])
 Route::get('/podcast', [PodcastController::class, 'index']);
 
 Route::get('/event', [EventController::class, 'index']);
+Route::get('/event/homeEvent', [EventController::class, 'homeEvent']);
+Route::get('/event/rekomendasiEvent', [EventController::class, 'rekomendasiEvent']);
 Route::get('/event/{slug}', [EventController::class, 'show']);
 
 //
@@ -50,6 +56,7 @@ Route::get('/galeri/{slug}', [GaleriController::class, 'show']);
 Route::get('/sotm', [SOTMController::class, 'index']);
 
 Route::post('/kontak', [KontakController::class, 'store']);
+Route::post('/komen', [KomentarController::class, 'store']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
