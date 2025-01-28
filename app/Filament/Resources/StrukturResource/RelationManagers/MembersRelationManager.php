@@ -32,16 +32,34 @@ class MembersRelationManager extends RelationManager
                     ->searchable(),
                 Forms\Components\Select::make('bidang')
                     ->options([
-                        "bph" => "BPH",
-                        "ekonomi" => "EKONOMI",
-                        "pendidikan" => "PENDIDIKAN",
-                        "lingkungan" => "LINGKUNGAN",
-                        "kesehatan" => "KESEHATAN",
-                        "medeks" => "MEDEKS",
-                    ]),
-                Forms\Components\TextInput::make('departemen')
+                        "BPH" => "BPH",
+                        "Ekonomi" => "EKONOMI",
+                        "Pendidikan" => "PENDIDIKAN",
+                        "Lingkungan" => "LINGKUNGAN",
+                        "Kesehatan" => "KESEHATAN",
+                        "Medeks" => "MEDEKS",
+                    ])
+                    ->preload()
                     ->required()
-                    ->maxLength(255),
+                    ->searchable(),
+                Forms\Components\Select::make('departemen')
+                    ->options([
+                        "Sekretaris" => "Sekretaris",
+                        "Bendahara" => "Bendahara",
+                        "Departemen Kajian dan Pengembangan SDM" => "Departemen Kajian dan Pengembangan SDM",
+                        "Departemen Pemberdayaan Masyarakat" => "Departemen Pemberdayaan Masyarakat",
+                        "Departemen Peningkatan Kesejahteraan Mahasiswa" => "Departemen Peningkatan Kesejahteraan Mahasiswa",
+                        "Departemen Pengembangan Perekonomian Masyarakat" => "Departemen Pengembangan Perekonomian Masyarakat",
+                        "Departemen Pengkajian dan Pengembangan Lingkungan" => "Departemen Pengkajian dan Pengembangan Lingkungan",
+                        "Departemen Penganggulangan Lingkungan" => "Departemen Penganggulangan Lingkungan",
+                        "Departemen Penelitian dan Pengembangan Kesehatan" => "Departemen Penelitian dan Pengembangan Kesehatan",
+                        "Departemen Kesehatan Masyarakat" => "Departemen Kesehatan Masyarakat",
+                        "Departemen Media Komunikasi dan Informasi" => "Departemen Media Komunikasi dan Informasi",
+                        "Departemen Kemitraan dan Hubungan Masyarakat" => "Departemen Kemitraan dan Hubungan Masyarakat",
+                    ])
+                    ->preload()
+                    ->required()
+                    ->searchable(),
             ]);
     }
 

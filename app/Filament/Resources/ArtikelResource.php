@@ -6,6 +6,7 @@ use App\Filament\Resources\ArtikelResource\Pages;
 use App\Filament\Resources\ArtikelResource\RelationManagers;
 use App\Models\Artikel;
 use App\Models\KategoriArtikel;
+use Filament\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Set;
 use Illuminate\Support\Str;
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
 
 class ArtikelResource extends Resource
 {
@@ -48,7 +50,24 @@ class ArtikelResource extends Resource
                 Forms\Components\Select::make('kategori_id')
                     ->relationship('kategori_artikel', 'id')
                     ->options(KategoriArtikel::all()->pluck('nama', 'id'))
-                    ->required(),
+                    ->required()
+                    ->createOptionForm([
+                        Forms\Components\TextInput::make('nama')
+                            ->required()
+                            ->maxLength(255)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                        Forms\Components\TextInput::make('slug')
+                            ->readOnly()
+                            ->required()
+                            ->maxLength(255),
+                        Forms\Components\FileUpload::make('thumbnail')
+                            ->image()
+                            ->directory('kategori artikel')
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('deskripsi')
+                            ->columnSpanFull(),
+                    ]),
                 Forms\Components\DateTimePicker::make('published_at')
                     ->default(now())
                     ->readOnly(),
@@ -61,12 +80,16 @@ class ArtikelResource extends Resource
                 Forms\Components\Textarea::make('excerpt')
                     ->required(),
                 Forms\Components\Textarea::make('keyword')
-                    ->required(),
+                    ->required()
+                    ->helperText('Tulis keyword untuk meta seo nya, dikasih "," setiap keywordnya. Misal "Bank Indonesia, CBP Rupiah, Ekonomi Syariah"👌'),
                 Forms\Components\FileUpload::make('thumbnail')
                     ->image()
+                    ->disk('public')
                     ->directory('artikel')
-                    ->columnSpanFull(),
-                Forms\Components\RichEditor::make('content')
+                    ->columnSpanFull()
+                    ->rules(['mimes:jpeg,png,jpg']),
+                    // ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg']),
+                TinyEditor::make('content')
                     ->required()
                     ->columnSpanFull(),
             ]);
