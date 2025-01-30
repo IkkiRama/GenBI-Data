@@ -198,7 +198,7 @@ class EventController extends Controller
                 'tempat' => $event->tempat,
                 'tanggal' => $event->tanggal,
                 'link_gmap' => $event->link_gmap,
-                'contact_person' => $event->contact_person,
+                'cta' => $event->cta,
                 'status' => $event->status,
                 'pemateri' => $event->pemateri,
             ];

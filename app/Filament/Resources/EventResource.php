@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Set;
 use Illuminate\Support\Str;
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
 
 class EventResource extends Resource
 {
@@ -49,12 +50,11 @@ class EventResource extends Resource
                     ->required(),
                  Forms\Components\TextInput::make('link_gmap')
                     ->label('Google Maps Link')
-                    ->required()
                     ->url(),
-                Forms\Components\TextInput::make('contact_person')
-                    ->label('Contact Person')
-                    ->required()
-                    ->maxLength(20),
+                Forms\Components\TextInput::make('cta')
+                    ->helperText('Bisa dikasih link pendaftaran ataupun nomer contact personnya. bisa dimulai dengan +62 untuk contact personnya')
+                    ->label('Link Pendaftaran / Contact Person')
+                    ->required(),
                 Forms\Components\FileUpload::make('image')
                     ->disk('public')
                     ->image()
@@ -64,7 +64,7 @@ class EventResource extends Resource
                     ->required(),
                 Forms\Components\Textarea::make('excerpt')
                     ->required(),
-                Forms\Components\RichEditor::make('deskripsi')
+                TinyEditor::make('deskripsi')
                     ->required()
                     ->columnSpanFull(),
             ]);
