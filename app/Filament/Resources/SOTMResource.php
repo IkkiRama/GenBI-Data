@@ -37,6 +37,7 @@ class SOTMResource extends Resource
                     ->preload()
                     ->required(),
                 Forms\Components\FileUpload::make('image')
+                    ->disk('public')
                     ->required()
                     ->image()
                     ->directory('sotm'),

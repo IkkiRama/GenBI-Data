@@ -53,6 +53,7 @@ class GaleriResource extends Resource
                     ->columnSpanFull()
                     ->maxLength(255),
                 Forms\Components\FileUpload::make('thumbnail')
+                    ->disk('public')
                     ->required()
                     ->image()
                     ->directory('galeri')
@@ -65,6 +66,7 @@ class GaleriResource extends Resource
                 ->label("Foto")
                 ->schema([
                     Forms\Components\FileUpload::make('nama')
+                        ->disk('public')
                         ->label("Galeri")
                         ->required()
                         ->image()

@@ -17,13 +17,11 @@ class KomentarController extends Controller
             'X-Powered-By' => 'Rifki Romadhan',
             'X-Content-Language' => 'id',
             'Access-Control-Allow-Origin' => '*',
-            'allowed_origins' => ['http://genbi.test'],
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-            'supports_credentials' => true,
         ];
 
         $validated = $request->validate([
-            'artikel_id'  => 'required|integer|numeric',
+            'artikel_id'  => 'required',
             'nama'  => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'komentar' => 'required|string',
@@ -35,7 +33,7 @@ class KomentarController extends Controller
         // Kembalikan response
         return response()->json([
             'success' => true,
-            'message' => 'Kontak berhasil disimpan.',
+            'message' => 'Komentar berhasil disimpan.',
             'data'    => $contact,
         ], 201, $headers);
     }

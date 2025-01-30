@@ -56,6 +56,7 @@ class StrukturResource extends Resource
                     ->preload()
                     ->required(),
                 Forms\Components\FileUpload::make('foto')
+                    ->disk('public')
                     ->required()
                     ->image()
                     ->directory('struktur'),

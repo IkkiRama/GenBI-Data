@@ -62,6 +62,7 @@ class ArtikelResource extends Resource
                             ->required()
                             ->maxLength(255),
                         Forms\Components\FileUpload::make('thumbnail')
+                            ->disk('public')
                             ->image()
                             ->directory('kategori artikel')
                             ->columnSpanFull(),

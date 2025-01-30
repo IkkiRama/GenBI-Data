@@ -56,6 +56,7 @@ class EventResource extends Resource
                     ->required()
                     ->maxLength(20),
                 Forms\Components\FileUpload::make('image')
+                    ->disk('public')
                     ->image()
                     ->directory('event')
                     ->columnSpanFull(),

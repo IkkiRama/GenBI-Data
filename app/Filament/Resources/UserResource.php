@@ -37,6 +37,7 @@ class UserResource extends Resource
                 Forms\Components\Textarea::make('deskripsi')
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('foto')
+                    ->disk('public')
                     ->columnSpanFull()
                     ->image()
                     ->directory('user'),
