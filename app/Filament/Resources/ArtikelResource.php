@@ -84,7 +84,7 @@ class ArtikelResource extends Resource
                     ->required()
                     ->helperText('Tulis keyword untuk meta seo nya, dikasih "," setiap keywordnya. Misal "Bank Indonesia, CBP Rupiah, Ekonomi Syariah"👌'),
                 Forms\Components\FileUpload::make('thumbnail')
-                    ->image() 
+                    ->image()
                     ->disk('public')
                     ->directory('artikel')
                     ->columnSpanFull()
@@ -153,6 +153,7 @@ class ArtikelResource extends Resource
         return [
             'index' => Pages\ListArtikels::route('/'),
             'create' => Pages\CreateArtikel::route('/create'),
+            'edit' => Pages\EditArtikel::route('/{record}/edit'),
         ];
     }
 

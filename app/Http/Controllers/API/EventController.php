@@ -72,37 +72,40 @@ class EventController extends Controller
         ];
 
         try {
-            $events = Event::where('tanggal', '>=', now()) // Ambil event dengan tanggal lebih besar atau sama dengan hari ini
-                ->orderBy('tanggal', 'asc') // Urutkan berdasarkan tanggal terdekat
-                ->take(3) // Ambil 3 event teratas
-                ->withoutTrashed() // Abaikan event yang telah dihapus
-                ->get()
-                ->map(function ($event) {
-                    return [
-                        'nama' => $event->nama,
-                        'slug' => $event->slug,
-                        'image' => $event->image,
-                        'excerpt' => $event->excerpt,
-                        'tempat' => $event->tempat,
-                        'tanggal' => $event->tanggal,
-                        'status' => $event->status,
-                    ];
-                });
+            // Ambil event mendatang
+            $events = Event::where('tanggal', '>=', now())
+                ->orderBy('tanggal', 'asc')
+                ->take(3)
+                ->withoutTrashed()
+                ->get();
 
+            // Jika tidak ada event mendatang, ambil 3 event terakhir yang sudah lewat
             if ($events->isEmpty()) {
-                return response()->json([
-                    "success" => false,
-                    "data" => null,
-                    "message" => "Event Tidak Ditemukan"
-                ], 404, $headers);
+                $events = Event::where('tanggal', '<', now())
+                    ->orderBy('tanggal', 'desc')
+                    ->take(3)
+                    ->withoutTrashed()
+                    ->get();
             }
+
+            // Mapping data event
+            $eventData = $events->map(function ($event) {
+                return [
+                    'nama' => $event->nama,
+                    'slug' => $event->slug,
+                    'image' => $event->image,
+                    'excerpt' => $event->excerpt,
+                    'tempat' => $event->tempat,
+                    'tanggal' => $event->tanggal,
+                    'status' => $event->status,
+                ];
+            });
 
             return response()->json([
                 "success" => true,
-                "data" => $events,
-                "message" => "Event Terbaru Berhasil Ditampilkan"
+                "data" => $eventData,
+                "message" => $eventData->isEmpty() ? "Tidak Ada Event Tersedia" : "Event Berhasil Ditampilkan"
             ], 200, $headers);
-
         } catch (\Exception $e) {
             return response()->json([
                 "success" => false,
@@ -123,30 +126,33 @@ class EventController extends Controller
         ];
 
         try {
-            $events = Event::where('tanggal', '>=', now()) // Ambil event dengan tanggal lebih besar atau sama dengan hari ini
-                ->inRandomOrder() // Pilih event secara acak
-                ->take(3) // Ambil 3 event
-                ->withoutTrashed() // Abaikan event yang telah dihapus
-                ->get()
-                ->map(function ($event) {
-                    return [
-                        'nama' => $event->nama,
-                        'slug' => $event->slug,
-                        'image' => $event->image,
-                        'excerpt' => $event->excerpt,
-                        'tempat' => $event->tempat,
-                        'tanggal' => $event->tanggal,
-                        'status' => $event->status,
-                    ];
-                });
+            // Ambil event yang masih akan datang
+            $events = Event::where('tanggal', '>=', now())
+                ->inRandomOrder()
+                ->take(3)
+                ->withoutTrashed()
+                ->get();
 
+            // Jika tidak ada event yang akan datang, ambil secara acak dari semua event
             if ($events->isEmpty()) {
-                return response()->json([
-                    "success" => false,
-                    "data" => null,
-                    "message" => "Event Tidak Ditemukan"
-                ], 404, $headers);
+                $events = Event::inRandomOrder()
+                    ->take(3)
+                    ->withoutTrashed()
+                    ->get();
             }
+
+            // Mapping hasil event
+            $events = $events->map(function ($event) {
+                return [
+                    'nama' => $event->nama,
+                    'slug' => $event->slug,
+                    'image' => $event->image,
+                    'excerpt' => $event->excerpt,
+                    'tempat' => $event->tempat,
+                    'tanggal' => $event->tanggal,
+                    'status' => $event->status,
+                ];
+            });
 
             return response()->json([
                 "success" => true,

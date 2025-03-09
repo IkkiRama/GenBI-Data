@@ -45,3 +45,6 @@ php artisan shield:super-admin
 php artisan make:filament-resource categoryNilai --generate
 
 php artisan make:filament-resource categoryNilai --generate --soft-deletes
+
+
+ln -s public_html/storage/app/public public_html/public/storage
