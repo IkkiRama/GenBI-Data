@@ -160,7 +160,7 @@ class ArtikelController extends Controller
 
     }
 
-    public function getTrendingMonthlyArtikel() : JsonResponse {
+    public function getTrendingMonthlyArtikel(): JsonResponse {
         $headers = [
             'Content-Type' => 'application/json',
             'X-Powered-By' => 'Rifki Romadhan',
@@ -169,35 +169,60 @@ class ArtikelController extends Controller
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
         ];
 
-        // Hitung tanggal satu bulan ke belakang
-        $oneMonthAgo = Carbon::now()->subMonth();
+        try {
+            $now = Carbon::now();
+            $oneMonthAgo = $now->copy()->subMonth();
+            $currentYear = $now->year;
 
-        try{
-
-            // Ambil artikel dengan views tertinggi selama satu bulan terakhir
+            // 1. Coba ambil artikel trending dari 1 bulan terakhir
             $trendingArtikel = Artikel::where('is_published', true)
                 ->withoutTrashed()
-                ->where('published_at', '>=', $oneMonthAgo) // Artikel yang diterbitkan dalam 1 bulan terakhir
-                ->orderBy('views', 'desc') // Urutkan berdasarkan views tertinggi
-                ->limit(10) // Batasi jumlah artikel
+                ->where('published_at', '>=', $oneMonthAgo)
+                ->orderBy('views', 'desc')
+                ->limit(10)
                 ->get();
+
+            $message = 'Artikel Trending Bulanan Berhasil Ditampilkan';
+
+            // 2. Jika tidak ada, fallback ke artikel tahun ini
+            if ($trendingArtikel->isEmpty()) {
+                $startOfYear = Carbon::createFromDate($currentYear, 1, 1);
+                $endOfYear = Carbon::createFromDate($currentYear, 12, 31);
+
+                $trendingArtikel = Artikel::where('is_published', true)
+                    ->withoutTrashed()
+                    ->whereBetween('published_at', [$startOfYear, $endOfYear])
+                    ->orderBy('views', 'desc')
+                    ->limit(10)
+                    ->get();
+
+                $message = 'Artikel Trending Tahunan Berhasil Ditampilkan';
+            }
+
+            // 3. Jika tetap tidak ada, fallback ke semua data
+            if ($trendingArtikel->isEmpty()) {
+                $trendingArtikel = Artikel::where('is_published', true)
+                    ->withoutTrashed()
+                    ->orderBy('views', 'desc')
+                    ->limit(10)
+                    ->get();
+
+                $message = 'Artikel Trending Sepanjang Masa Berhasil Ditampilkan';
+            }
 
             return response()->json([
                 'success' => true,
                 'data' => $trendingArtikel,
-                'message' => 'Artikel Trending Bulanan Berhasil Ditampilkan',
+                'message' => $message,
             ], 200, $headers);
 
-        }catch (\Exception $e) {
-
+        } catch (\Exception $e) {
             return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
+                'success' => false,
+                'data' => null,
+                'message' => 'Terjadi Kesalahan pada Server: ' . $e->getMessage(),
             ], 500, $headers);
-
         }
-
     }
 
     /**

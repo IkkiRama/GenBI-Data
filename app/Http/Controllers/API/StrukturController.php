@@ -24,30 +24,44 @@ class StrukturController extends Controller
         ];
 
         try {
-
-            // Tentukan periode berdasarkan tahun sekarang
             $currentYear = Carbon::now()->year;
             $currentMonth = Carbon::now()->month;
 
-            // Logika penentuan periode
+            // Penentuan periode sekarang
             if ($currentMonth < 4) {
-                // Jika sebelum April, gunakan tahun lalu - tahun sekarang
                 $previousYear = $currentYear - 1;
                 $periode = "$previousYear-$currentYear";
             } else {
-                // Jika April atau setelahnya, gunakan tahun sekarang - tahun depan
                 $nextYear = $currentYear + 1;
                 $periode = "$currentYear-$nextYear";
             }
 
+            // Ambil struktur berdasarkan periode sekarang
             $struktur = Struktur::withoutTrashed()->where("periode", $periode)->latest()->get();
 
-            if (empty($struktur)) {
+            // Jika kosong, ambil dari periode tahun sebelumnya
+            if ($struktur->isEmpty()) {
+                if ($currentMonth < 4) {
+                    $periodeFallback = ($previousYear - 1) . "-$previousYear";
+                } else {
+                    $periodeFallback = ($currentYear - 1) . "-$currentYear";
+                }
+
+                $struktur = Struktur::withoutTrashed()->where("periode", $periodeFallback)->latest()->get();
+
+                if ($struktur->isEmpty()) {
+                    return response()->json([
+                        "success" => false,
+                        "data" => null,
+                        "message" => "Struktur Tidak Ditemukan"
+                    ], 404, $headers);
+                }
+
                 return response()->json([
-                    "success" => false,
-                    "data" => null,
-                    "message" => "Struktur Tidak Ditemukan"
-                ], 404, $headers);
+                    "success" => true,
+                    "data" => $struktur,
+                    "message" => "Struktur Ditampilkan dari Periode Sebelumnya"
+                ], 200, $headers);
             }
 
             return response()->json([
@@ -57,15 +71,14 @@ class StrukturController extends Controller
             ], 200, $headers);
 
         } catch (\Exception $e) {
-
             return response()->json([
                 "success" => false,
                 "data" => null,
                 "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
             ], 500, $headers);
-
         }
     }
+
 
     /**
      * Show the form for creating a new resource.
