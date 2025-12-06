@@ -3,316 +3,252 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-
-use Carbon\Carbon;
 use App\Models\Artikel;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ArtikelController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/artikel",
+     *     summary="Get all published articles (paginated)",
+     *     tags={"Artikel"},
+     *     @OA\Response(
+     *          response=200,
+     *          description="Success"
+     *      ),
+     *     @OA\Response(response=404, description="No articles found")
+     * )
      */
-    public function index()
+    public function index() : JsonResponse
     {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
+            $artikel = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
+                ->withoutTrashed()
+                ->with('kategori_artikel','user')
+                ->where('is_published', 1)
+                ->latest()
+                ->paginate(7);
 
-            $artikel = Artikel::select('title','views', "slug", "thumbnail", "excerpt", "published_at", "author_id", "kategori_id")->withoutTrashed()->with("kategori_artikel", "user")->where("is_published", 1)->latest()->paginate(7);
-
-            if (empty($artikel)) {
+            if ($artikel->isEmpty()) {
                 return response()->json([
                     "success" => false,
                     "data" => null,
-                    "message" => "Artikel Tidak Ditemukan"
+                    "message" => "Artikel tidak ditemukan"
                 ], 404, $headers);
             }
 
             return response()->json([
                 "success" => true,
                 "data" => $artikel,
-                "message" => "Artikel Berhasil Ditampilkan"
+                "message" => "Artikel berhasil ditampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {
-
-            return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-            ], 500, $headers);
-
+            return $this->errorResponse($e, $headers);
         }
-
     }
 
+
     /**
-     * Randomly recommends 4 articles.
+     * @OA\Get(
+     *     path="/api/artikel/rekomendasi",
+     *     summary="Get 4 random recommended articles",
+     *     tags={"Artikel"}
+     * )
      */
     public function rekomendasi(): JsonResponse
     {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        $headers = $this->getCorsHeaders();
 
         try {
-            // Mengambil 3 artikel secara acak
-            $artikels = Artikel::select('title','views', "slug", "thumbnail", "excerpt", "published_at", "author_id", "kategori_id")->withoutTrashed()->inRandomOrder()->limit(4)->get();
+            $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
+                ->withoutTrashed()
+                ->inRandomOrder()
+                ->limit(4)
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'data' => $artikels,
-                'message' => 'Artikel berhasil diambil secara acak.'
+                'message' => 'Rekomendasi artikel berhasil ditampilkan'
             ], 200, $headers);
+
         } catch (\Exception $e) {
-            // Tangani error
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-            ], 500, $headers);
+            return $this->errorResponse($e, $headers);
         }
     }
 
+
     /**
-     * Retrieve the 4 most recent articles for the home page.
+     * @OA\Get(
+     *     path="/api/artikel/home",
+     *     summary="Get latest 4 published articles for homepage",
+     *     tags={"Artikel"}
+     * )
      */
     public function homeArtikel(): JsonResponse
     {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        $headers = $this->getCorsHeaders();
 
         try {
-            // Mengambil 4 artikel terbaru berdasarkan created_at
-            $artikels = Artikel::select('title','views', "slug", "thumbnail", "excerpt", "published_at", "author_id", "kategori_id")
-            ->withoutTrashed()
-            ->with("kategori_artikel", "user")
-            ->where("is_published", 1)
-            ->orderBy('created_at', 'desc')
-            ->limit(4)->get();
+            $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
+                ->withoutTrashed()
+                ->with('kategori_artikel','user')
+                ->where('is_published', 1)
+                ->latest()
+                ->limit(4)
+                ->get();
 
             return response()->json([
                 'success' => true,
                 'data' => $artikels,
-                'message' => '4 artikel terbaru berhasil diambil.'
+                'message' => 'Artikel terbaru berhasil diambil.'
             ], 200, $headers);
+
         } catch (\Exception $e) {
-            // Tangani error
-            return response()->json([
-                'success' => false,
-                'message' => 'Terjadi kesalahan: ' . $e->getMessage(),
-            ], 500, $headers);
+            return $this->errorResponse($e, $headers);
         }
     }
 
-    public function getRandomArtikel() : JsonResponse {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
 
-        try{
+    /**
+     * @OA\Get(
+     *     path="/api/artikel/random",
+     *     summary="Get 3 random published articles",
+     *     tags={"Artikel"}
+     * )
+     */
+    public function getRandomArtikel(): JsonResponse
+    {
+        $headers = $this->getCorsHeaders();
 
-            // Ambil artikel dengan views tertinggi selama satu bulan terakhir
-            $trendingArtikel = Artikel::
-                select('title','views', "slug", "thumbnail", "excerpt", "published_at", "author_id", "kategori_id")
+        try {
+            $trendingArtikel = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
                 ->where('is_published', true)
                 ->inRandomOrder()
-                ->with("kategori_artikel", "user")
-                ->limit(3) // Batasi jumlah artikel
+                ->with('kategori_artikel','user')
+                ->limit(3)
                 ->get();
 
             return response()->json([
                 'success' => true,
                 'data' => $trendingArtikel,
-                'message' => 'Artikel Trending Bulanan Berhasil Ditampilkan',
-            ], 200, $headers);
-
-        }catch (\Exception $e) {
-
-            return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-            ], 500, $headers);
-
-        }
-
-    }
-
-    public function getTrendingMonthlyArtikel(): JsonResponse {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
-
-        try {
-            $now = Carbon::now();
-            $oneMonthAgo = $now->copy()->subMonth();
-            $currentYear = $now->year;
-
-            // 1. Coba ambil artikel trending dari 1 bulan terakhir
-            $trendingArtikel = Artikel::where('is_published', true)
-                ->withoutTrashed()
-                ->where('published_at', '>=', $oneMonthAgo)
-                ->orderBy('views', 'desc')
-                ->limit(10)
-                ->get();
-
-            $message = 'Artikel Trending Bulanan Berhasil Ditampilkan';
-
-            // 2. Jika tidak ada, fallback ke artikel tahun ini
-            if ($trendingArtikel->isEmpty()) {
-                $startOfYear = Carbon::createFromDate($currentYear, 1, 1);
-                $endOfYear = Carbon::createFromDate($currentYear, 12, 31);
-
-                $trendingArtikel = Artikel::where('is_published', true)
-                    ->withoutTrashed()
-                    ->whereBetween('published_at', [$startOfYear, $endOfYear])
-                    ->orderBy('views', 'desc')
-                    ->limit(10)
-                    ->get();
-
-                $message = 'Artikel Trending Tahunan Berhasil Ditampilkan';
-            }
-
-            // 3. Jika tetap tidak ada, fallback ke semua data
-            if ($trendingArtikel->isEmpty()) {
-                $trendingArtikel = Artikel::where('is_published', true)
-                    ->withoutTrashed()
-                    ->orderBy('views', 'desc')
-                    ->limit(10)
-                    ->get();
-
-                $message = 'Artikel Trending Sepanjang Masa Berhasil Ditampilkan';
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $trendingArtikel,
-                'message' => $message,
+                'message' => 'Artikel random berhasil ditampilkan'
             ], 200, $headers);
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'data' => null,
-                'message' => 'Terjadi Kesalahan pada Server: ' . $e->getMessage(),
-            ], 500, $headers);
+            return $this->errorResponse($e, $headers);
         }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Get(
+     *     path="/api/artikel/trending",
+     *     summary="Get top 10 trending articles monthly or fallback yearly/all time",
+     *     tags={"Artikel"}
+     * )
      */
-    public function store(Request $request)
+    public function getTrendingMonthlyArtikel(): JsonResponse
     {
-        //
-    }
-
-
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($slug)
-    {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        $headers = $this->getCorsHeaders();
 
         try {
+            $now = Carbon::now();
+            $oneMonthAgo = $now->clone()->subMonth();
+            $year = $now->year;
 
-            $artikel = Artikel::where([
-                ["slug", $slug],
-                ["is_published", 1]
-            ])
-            ->withoutTrashed()
-            ->with("komentar", "kategori_artikel", "user")->firstOrFail();
+            // 1️⃣ Trending 1 bulan terakhir
+            $artikel = Artikel::trendingSince($oneMonthAgo)->limit(10)->get();
+            $message = 'Trending bulan ini';
 
-            if (empty($artikel)) {
-                throw new \Exception("Artikel tidak ditemukan.");
+            // 2️⃣ Fallback ke trending tahun berjalan
+            if ($artikel->isEmpty()) {
+                $artikel = Artikel::trendingThisYear($year)->limit(10)->get();
+                $message = 'Trending tahun ini';
             }
 
-            $newViews = $artikel->views + 1;
-            $artikel->update([
-                "views" => $newViews
-            ]);
+            // 3️⃣ Fallback ke all-time trending
+            if ($artikel->isEmpty()) {
+                $artikel = Artikel::trendingAll()->limit(10)->get();
+                $message = 'Trending sepanjang masa';
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $artikel,
+                'message' => $message
+            ], 200, $headers);
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($e, $headers);
+        }
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/api/artikel/{slug}",
+     *     summary="Show article detail",
+     *     tags={"Artikel"},
+     *     @OA\Parameter(
+     *         name="slug", in="path", required=true
+     *     )
+     * )
+     */
+    public function show($slug): JsonResponse
+    {
+        $headers = $this->getCorsHeaders();
+
+        try {
+            $artikel = Artikel::where('slug', $slug)
+                ->where('is_published', 1)
+                ->withoutTrashed()
+                ->with('komentar','kategori_artikel','user')
+                ->firstOrFail();
+
+            $artikel->increment('views');
 
             return response()->json([
                 "success" => true,
                 "data" => $artikel,
-                "message" => "Artikel ".$slug." Berhasil di Tampilkan"
+                "message" => "Detail artikel berhasil ditampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {
-
-            return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Error: " . $e->getMessage()
-            ], 500, $headers);
-
+            return $this->errorResponse($e, $headers);
         }
-
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
+
+    /** Helper Method */
+    private function getCorsHeaders($allowed = null, $origin = null)
     {
-        //
+        $allowed = $allowed ?? explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $origin ?? ($_SERVER['HTTP_ORIGIN'] ?? '');
+
+        return [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => in_array($origin, $allowed) ? $origin : 'null',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ];
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
+    private function errorResponse($e, $headers, $status = 500)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return response()->json([
+            'success' => false,
+            'data' => null,
+            'message' => 'Server Error: '.$e->getMessage()
+        ], $status, $headers);
     }
 }

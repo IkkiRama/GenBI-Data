@@ -2,229 +2,191 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
 use App\Models\Event;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
 class EventController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/api/event",
+     *     summary="Get all events ordered by date",
+     *     tags={"Event"},
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="No events found")
+     * )
      */
-    public function index() : JsonResponse
+    public function index(): JsonResponse
     {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        $headers = $this->getCorsHeaders();
 
         try {
+            $events = Event::orderBy('tanggal', 'asc')
+                ->withoutTrashed()
+                ->get();
 
-            $events = Event::orderBy('tanggal', 'asc')->withoutTrashed()->get()->map(function ($event) {
-                return [
-                    'nama' => $event->nama,
-                    'slug' => $event->slug,
-                    'image' => $event->image,
-                    'excerpt' => $event->excerpt,
-                    'tempat' => $event->tempat,
-                    'tanggal' => $event->tanggal,
-                    'status' => $event->status,
-                ];
-            });
-
-            if (empty($events)) {
+            if ($events->isEmpty()) {
                 return response()->json([
                     "success" => false,
                     "data" => null,
-                    "message" => "Event Tidak Ditemukan"
+                    "message" => "Event tidak ditemukan"
                 ], 404, $headers);
             }
 
             return response()->json([
                 "success" => true,
                 "data" => $events,
-                "message" => "Event Berhasil Ditampilkan"
+                "message" => "Event berhasil ditampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {
-
-            return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-            ], 500, $headers);
-
+            return $this->errorResponse($e, $headers);
         }
     }
 
-    public function homeEvent() : JsonResponse
-{
-    $headers = [
-        'Content-Type' => 'application/json',
-        'X-Powered-By' => 'Rifki Romadhan',
-        'X-Content-Language' => 'id',
-        'Access-Control-Allow-Origin' => '*',
-        'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-    ];
 
-    try {
-        // Ambil event mendatang
-        $events = Event::where('tanggal', '>=', now())
-            ->orderBy('tanggal', 'asc')
-            ->take(3)
-            ->withoutTrashed()
-            ->get();
+    /**
+     * @OA\Get(
+     *     path="/api/event/home",
+     *     summary="Get 3 upcoming events for homepage (fallback recent past events)",
+     *     tags={"Event"}
+     * )
+     */
+    public function homeEvent(): JsonResponse
+    {
+        $headers = $this->getCorsHeaders();
 
-        // Jika tidak ada event mendatang, ambil 3 event terakhir yang sudah lewat
-        if ($events->isEmpty()) {
-            $events = Event::where('tanggal', '<', now())
-                ->orderBy('tanggal', 'desc')
+        try {
+            $events = Event::where('tanggal', '>=', now())
+                ->orderBy('tanggal', 'asc')
                 ->take(3)
                 ->withoutTrashed()
                 ->get();
-        }
 
-        // Mapping data event
-        $eventData = $events->map(function ($event) {
-            return [
-                'nama' => $event->nama,
-                'slug' => $event->slug,
-                'image' => $event->image,
-                'excerpt' => $event->excerpt,
-                'tempat' => $event->tempat,
-                'tanggal' => $event->tanggal,
-                'status' => $event->status,
-            ];
-        });
-
-        return response()->json([
-            "success" => true,
-            "data" => $eventData,
-            "message" => $eventData->isEmpty() ? "Tidak Ada Event Tersedia" : "Event Berhasil Ditampilkan"
-        ], 200, $headers);
-    } catch (\Exception $e) {
-        return response()->json([
-            "success" => false,
-            "data" => null,
-            "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-        ], 500, $headers);
-    }
-}
-
-
-    public function rekomendasiEvent() : JsonResponse
-    {
-        $headers = [
-    'Content-Type' => 'application/json',
-    'X-Powered-By' => 'Rifki Romadhan',
-    'X-Content-Language' => 'id',
-    'Access-Control-Allow-Origin' => '*',
-    'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-];
-
-try {
-    // Ambil event yang masih akan datang
-    $events = Event::where('tanggal', '>=', now())
-        ->inRandomOrder()
-        ->take(3)
-        ->withoutTrashed()
-        ->get();
-
-    // Jika tidak ada event yang akan datang, ambil secara acak dari semua event
-    if ($events->isEmpty()) {
-        $events = Event::inRandomOrder()
-            ->take(3)
-            ->withoutTrashed()
-            ->get();
-    }
-
-    // Mapping hasil event
-    $events = $events->map(function ($event) {
-        return [
-            'nama' => $event->nama,
-            'slug' => $event->slug,
-            'image' => $event->image,
-            'excerpt' => $event->excerpt,
-            'tempat' => $event->tempat,
-            'tanggal' => $event->tanggal,
-            'status' => $event->status,
-        ];
-    });
-
-    return response()->json([
-        "success" => true,
-        "data" => $events,
-        "message" => "Event Rekomendasi Berhasil Ditampilkan"
-    ], 200, $headers);
-
-} catch (\Exception $e) {
-    return response()->json([
-        "success" => false,
-        "data" => null,
-        "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-    ], 500, $headers);
-}
-
-    }
-
-    /**
-     * Display the specified event resource.
-     */
-    public function show(string $slug)
-    {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
-
-        try {
-
-           $event = Event::where('slug', $slug)->with('pemateri')->first();
-
-            if (empty($event)) {
-                return response()->json([
-                    "success" => false,
-                    "data" => null,
-                    "message" => "Event Tidak Ditemukan"
-                ], 404, $headers);
+            if ($events->isEmpty()) {
+                $events = Event::where('tanggal', '<', now())
+                    ->orderBy('tanggal', 'desc')
+                    ->take(3)
+                    ->withoutTrashed()
+                    ->get();
             }
-
-            $eventData = [
-                'id' => $event->id,
-                'nama' => $event->nama,
-                'slug' => $event->slug,
-                'image' => $event->image,
-                'excerpt' => $event->excerpt,
-                'deskripsi' => $event->deskripsi,
-                'tempat' => $event->tempat,
-                'tanggal' => $event->tanggal,
-                'link_gmap' => $event->link_gmap,
-                'cta' => $event->cta,
-                'status' => $event->status,
-                'pemateri' => $event->pemateri,
-            ];
 
             return response()->json([
                 "success" => true,
-                "data" => $eventData,
-                "message" => "Event Berhasil Ditampilkan"
+                "data" => $events,
+                "message" => $events->isEmpty()
+                    ? "Tidak ada event tersedia"
+                    : "Event berhasil ditampilkan"
             ], 200, $headers);
 
         } catch (\Exception $e) {
+            return $this->errorResponse($e, $headers);
+        }
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/api/event/rekomendasi",
+     *     summary="Get recommended random events",
+     *     tags={"Event"}
+     * )
+     */
+    public function rekomendasiEvent(): JsonResponse
+    {
+        $headers = $this->getCorsHeaders();
+
+        try {
+            $events = Event::where('tanggal', '>=', now())
+                ->inRandomOrder()
+                ->take(3)
+                ->withoutTrashed()
+                ->get();
+
+            if ($events->isEmpty()) {
+                $events = Event::inRandomOrder()
+                    ->take(3)
+                    ->withoutTrashed()
+                    ->get();
+            }
 
             return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Terjadi Kesalahan pada Server: " . $e->getMessage()
-            ], 500, $headers);
+                "success" => true,
+                "data" => $events,
+                "message" => "Event rekomendasi berhasil ditampilkan"
+            ], 200, $headers);
 
+        } catch (\Exception $e) {
+            return $this->errorResponse($e, $headers);
         }
+    }
+
+
+    /**
+     * @OA\Get(
+     *     path="/api/event/{slug}",
+     *     summary="Get event detail by slug",
+     *     tags={"Event"},
+     *     @OA\Parameter(name="slug", in="path", required=true)
+     * )
+     */
+    public function show(string $slug): JsonResponse
+    {
+        $headers = $this->getCorsHeaders();
+
+        try {
+            $event = Event::where('slug', $slug)
+                ->with('pemateri')
+                ->first();
+
+            if (!$event) {
+                return response()->json([
+                    "success" => false,
+                    "data" => null,
+                    "message" => "Event tidak ditemukan"
+                ], 404, $headers);
+            }
+
+            return response()->json([
+                "success" => true,
+                "data" => $event,
+                "message" => "Event berhasil ditampilkan"
+            ], 200, $headers);
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($e, $headers);
+        }
+    }
+
+
+    /**
+     * Helper: CORS Header
+     */
+    private function getCorsHeaders()
+    {
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $requestOrigin  = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        return [
+            'Content-Type' => 'application/json',
+            'Access-Control-Allow-Origin' => in_array($requestOrigin, $allowedDomains)
+                ? $requestOrigin
+                : 'null',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ];
+    }
+
+    /**
+     * Helper: Standardized Error Response
+     */
+    private function errorResponse($exception, $headers)
+    {
+        return response()->json([
+            "success" => false,
+            "data" => null,
+            "message" => "Server error: " . $exception->getMessage()
+        ], 500, $headers);
     }
 }
