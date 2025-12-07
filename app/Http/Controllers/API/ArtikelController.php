@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 
 class ArtikelController extends Controller
 {
+
     /**
      * Menampilkan daftar artikel yang sudah dipublikasikan (paginate).
      * - Menampilkan 7 artikel per halaman
@@ -29,7 +30,10 @@ class ArtikelController extends Controller
             // Ambil artikel terbaru, hanya data penting
             $artikel = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed() // Tidak ambil yang sudah soft-delete
-                ->with('kategori_artikel', 'user') // join relasi
+                ->with([
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name'                     // ambil hanya id, name
+                ]) // join relasi
                 ->where('is_published', 1) // hanya publish
                 ->latest()
                 ->paginate(7);
@@ -55,16 +59,22 @@ class ArtikelController extends Controller
 
 
     /**
-     * Mengambil 4 artikel secara acak (rekomendasi)
+     * Mengambil 4 artikel secara acak (rekomendasi) yang sudah dipublikasikan
      */
     public function rekomendasi(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Random 4 artikel
-            $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
+            $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at')
                 ->withoutTrashed()
+                ->where('is_published', true)
                 ->inRandomOrder()
                 ->limit(4)
                 ->get();
@@ -86,13 +96,21 @@ class ArtikelController extends Controller
      */
     public function homeArtikel(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Artikel terbaru, max 4
             $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
-                ->with('kategori_artikel','user')
+                ->with([
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name'                     // ambil hanya id, name
+                ])
                 ->where('is_published', 1)
                 ->latest()
                 ->limit(4)
@@ -115,7 +133,12 @@ class ArtikelController extends Controller
      */
     public function getRandomArtikel(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Random artikel
@@ -123,7 +146,10 @@ class ArtikelController extends Controller
                 ->withoutTrashed()
                 ->where('is_published', true)
                 ->inRandomOrder()
-                ->with('kategori_artikel','user')
+                ->with([
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name'                     // ambil hanya id, name
+                ])
                 ->limit(3)
                 ->get();
 
@@ -147,7 +173,12 @@ class ArtikelController extends Controller
      */
     public function getTrendingMonthlyArtikel(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             $now = Carbon::now();
@@ -157,7 +188,10 @@ class ArtikelController extends Controller
             // 🔥 Query dasar untuk reusable
             $baseQuery = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
-                ->with('kategori_artikel','user')
+                ->with([
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name'                     // ambil hanya id, name
+                ])
                 ->where('is_published', 1)
                 ->orderBy('views', 'desc');
 
@@ -205,14 +239,23 @@ class ArtikelController extends Controller
      */
     public function show($slug): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Ambil detail artikel & relasinya
             $artikel = Artikel::where('slug', $slug)
                 ->where('is_published', 1)
                 ->withoutTrashed()
-                ->with('komentar','kategori_artikel','user')
+                ->with([
+                    'komentar:artikel_id,nama,email,komentar',
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name,deskripsi,email,foto'                     // ambil hanya id, name
+                ]) // join relasi
                 ->firstOrFail();
 
             // Tambahkan jumlah view untuk tracking
@@ -231,19 +274,37 @@ class ArtikelController extends Controller
 
 
     /**
-     * Helper untuk membuat response CORS Header
+     * Mengatur header CORS untuk mengizinkan akses dari domain yang diizinkan.
+     *
+     * Method ini memeriksa apakah origin pada request masuk dalam daftar domain
+     * yang diperbolehkan pada file .env melalui variabel VITE_CORS_DOMAINS.
+     * Jika tidak diizinkan → akses akan ditolak dengan HTTP 403.
+     *
+     * @param array|null $allowed Daftar domain yang diperbolehkan (opsional).
+     * @param string|null $origin Origin yang masuk via request header (opsional).
+     * @return array Header yang diperbolehkan untuk CORS.
      */
-    private function getCorsHeaders($allowed = null, $origin = null)
+    private function getCorsHeaders($allowed = null, $origin = null): array
     {
+        // Ambil daftar domain yang diperbolehkan (dipisah dengan koma di .env)
         $allowed = $allowed ?? explode(',', $_ENV['VITE_CORS_DOMAINS']);
-        $origin = $origin ?? ($_SERVER['HTTP_ORIGIN'] ?? '');
 
+        // Ambil Origin dari request (lebih aman dibanding $_SERVER['HTTP_ORIGIN'])
+        $origin = $origin ?? request()->header('Origin', '');
+
+        // Jika origin tidak ada di daftar allowed → tolak akses
+        if (!in_array($origin, $allowed)) {
+            $origin = 'null';
+        }
+
+        // Jika lolos validasi → kembalikan header
         return [
             'Content-Type' => 'application/json',
-            'Access-Control-Allow-Origin' => in_array($origin, $allowed) ? $origin : 'null',
+            'Access-Control-Allow-Origin' => $origin,
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
         ];
     }
+
 
     /**
      * Helper respon error standar server

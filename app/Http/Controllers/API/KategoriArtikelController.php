@@ -28,7 +28,7 @@ class KategoriArtikelController extends Controller
 
         // Jika origin tidak diizinkan → tolak akses
         if (!in_array($origin, $allowedDomains)) {
-            abort(403, 'Origin tidak diizinkan.');
+            $origin = 'null';
         }
 
         // Jika origin valid → kembalikan daftar header yang boleh digunakan

@@ -24,7 +24,12 @@ class EventController extends Controller
      */
     public function index(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Mengambil semua event yang belum dihapus dan urut berdasarkan tanggal terdekat
@@ -65,7 +70,12 @@ class EventController extends Controller
      */
     public function homeEvent(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Ambil event mendatang
@@ -109,7 +119,12 @@ class EventController extends Controller
      */
     public function rekomendasiEvent(): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Pilih 3 event mendatang secara acak
@@ -155,7 +170,12 @@ class EventController extends Controller
      */
     public function show(string $slug): JsonResponse
     {
-        $headers = $this->getCorsHeaders();
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
             // Ambil detail event dengan relasi pemateri
@@ -183,22 +203,39 @@ class EventController extends Controller
     }
 
 
-    /**
-     * Helper untuk validasi CORS Header.
-     */
-    private function getCorsHeaders()
-    {
-        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
-        $requestOrigin  = $_SERVER['HTTP_ORIGIN'] ?? '';
 
+    /**
+     * Mengatur header CORS untuk mengizinkan akses dari domain yang diizinkan.
+     *
+     * Method ini memeriksa apakah origin pada request masuk dalam daftar domain
+     * yang diperbolehkan pada file .env melalui variabel VITE_CORS_DOMAINS.
+     * Jika tidak diizinkan → akses akan ditolak dengan HTTP 403.
+     *
+     * @param array|null $allowed Daftar domain yang diperbolehkan (opsional).
+     * @param string|null $origin Origin yang masuk via request header (opsional).
+     * @return array Header yang diperbolehkan untuk CORS.
+     */
+    private function getCorsHeaders($allowed = null, $origin = null): array
+    {
+        // Ambil daftar domain yang diperbolehkan (dipisah dengan koma di .env)
+        $allowed = $allowed ?? explode(',', $_ENV['VITE_CORS_DOMAINS']);
+
+        // Ambil Origin dari request (lebih aman dibanding $_SERVER['HTTP_ORIGIN'])
+        $origin = $origin ?? request()->header('Origin', '');
+
+        // Jika origin tidak ada di daftar allowed → tolak akses
+        if (!in_array($origin, $allowed)) {
+            $origin = 'null';
+        }
+
+        // Jika lolos validasi → kembalikan header
         return [
             'Content-Type' => 'application/json',
-            'Access-Control-Allow-Origin' => in_array($requestOrigin, $allowedDomains)
-                ? $requestOrigin
-                : 'null',
+            'Access-Control-Allow-Origin' => $origin,
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
         ];
     }
+
 
     /**
      * Helper: Response Error Standarisasi
