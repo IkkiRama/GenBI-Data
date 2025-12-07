@@ -10,81 +10,62 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
     /**
-     * @OA\Post(
-     *     path="/api/login",
-     *     summary="User login & get Bearer Token",
-     *     tags={"Authentication"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"email","password"},
-     *             @OA\Property(property="email", type="string", example="example@gmail.com"),
-     *             @OA\Property(property="password", type="string", example="password123")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Login Successful"),
-     *     @OA\Response(response=401, description="Invalid credentials"),
-     *     @OA\Response(response=403, description="Already logged in")
-     * )
+     * Login user dan menghasilkan token autentikasi (Bearer Token).
+     * - Validasi email dan password
+     * - Cek apakah user terdaftar dan password sesuai
+     * - Hapus token lama (hanya mengizinkan 1 sesi per user)
+     * - Kembalikan token baru dan data user
      */
     public function login(Request $request)
     {
-        $headers = $this->getCorsHeaders();
-
+        // Validasi input yang diterima dari user
         $request->validate([
             "email" => "required|email|string",
             "password" => "required|string"
         ]);
 
+        // Cari user berdasarkan email
         $user = User::where("email", $request->email)->first();
 
+        // Jika user tidak ditemukan atau password salah → kembalikan error 401
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 "success" => false,
                 "data" => null,
-                "message" => "Email atau password salah"
-            ], 401, $headers);
+                "message" => "Email atau password tidak valid"
+            ], 401);
         }
 
-        // Cek apakah sudah memiliki token aktif
-        if ($user->tokens()->exists()) {
-            return response()->json([
-                "success" => false,
-                "data" => null,
-                "message" => "Anda sudah login. Silahkan logout terlebih dahulu."
-            ], 403, $headers);
-        }
+        // Hapus semua token lama user (single login per user)
+        // Jika ingin multi device login, bagian ini bisa dihapus
+        $user->tokens()->delete();
 
+        // Buat token baru untuk autentikasi API
         $token = $user->createToken("API Token")->plainTextToken;
 
+        // Kembalikan response sukses ke client
         return response()->json([
             "success" => true,
             "data" => [
-                "token" => $token,
-                "token_type" => "Bearer",
-                "user" => $user
+                "token" => $token,         // Token yang digunakan pada header Authorization
+                "token_type" => "Bearer",  // Jenis token
+                "user" => $user            // Data user yang login
             ],
             "message" => "Login berhasil"
-        ], 200, $headers);
+        ], 200);
     }
 
-
     /**
-     * @OA\Post(
-     *     path="/api/logout",
-     *     summary="Logout user & revoke token",
-     *     security={{"bearerAuth":{}}},
-     *     tags={"Authentication"},
-     *     @OA\Response(response=200, description="Success"),
-     *     @OA\Response(response=401, description="No active session")
-     * )
+     * Logout user dan mencabut token aktif.
+     * - Pastikan ada user yang login
+     * - Hapus token dari database (revoke)
      */
     public function logout(Request $request)
     {
-        $headers = $this->getCorsHeaders();
-
+        // Ambil user berdasarkan token yang sedang aktif
         $user = $request->user();
 
+        // Jika ada user yang aktif → hapus semua token (logout semua sesi)
         if ($user) {
             $user->tokens()->delete();
 
@@ -92,29 +73,14 @@ class AuthController extends Controller
                 "success" => true,
                 "data" => null,
                 "message" => "Logout berhasil"
-            ], 200, $headers);
+            ], 200);
         }
 
+        // Jika tidak ada token aktif → unauthorized
         return response()->json([
             "success" => false,
             "data" => null,
             "message" => "Tidak ada sesi login yang aktif"
-        ], 401, $headers);
-    }
-
-
-    /**
-     * Helper untuk CORS Headers
-     */
-    private function getCorsHeaders()
-    {
-        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
-        $requestOrigin  = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-        return [
-            'Content-Type' => 'application/json',
-            'Access-Control-Allow-Origin' => in_array($requestOrigin, $allowedDomains) ? $requestOrigin : 'null',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        ], 401);
     }
 }

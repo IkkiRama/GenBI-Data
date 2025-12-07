@@ -11,29 +11,26 @@ use Illuminate\Http\Request;
 class ArtikelController extends Controller
 {
     /**
-     * @OA\Get(
-     *     path="/api/artikel",
-     *     summary="Get all published articles (paginated)",
-     *     tags={"Artikel"},
-     *     @OA\Response(
-     *          response=200,
-     *          description="Success"
-     *      ),
-     *     @OA\Response(response=404, description="No articles found")
-     * )
+     * Menampilkan daftar artikel yang sudah dipublikasikan (paginate).
+     * - Menampilkan 7 artikel per halaman
+     * - Hanya artikel published
+     * - Termasuk relasi kategori & user
      */
-    public function index() : JsonResponse
+    public function index(): JsonResponse
     {
+        // Ambil domain asal request (untuk keperluan CORS)
         $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
+        // Set header CORS
         $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
+            // Ambil artikel terbaru, hanya data penting
             $artikel = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
-                ->withoutTrashed()
-                ->with('kategori_artikel','user')
-                ->where('is_published', 1)
+                ->withoutTrashed() // Tidak ambil yang sudah soft-delete
+                ->with('kategori_artikel', 'user') // join relasi
+                ->where('is_published', 1) // hanya publish
                 ->latest()
                 ->paginate(7);
 
@@ -58,17 +55,14 @@ class ArtikelController extends Controller
 
 
     /**
-     * @OA\Get(
-     *     path="/api/artikel/rekomendasi",
-     *     summary="Get 4 random recommended articles",
-     *     tags={"Artikel"}
-     * )
+     * Mengambil 4 artikel secara acak (rekomendasi)
      */
     public function rekomendasi(): JsonResponse
     {
         $headers = $this->getCorsHeaders();
 
         try {
+            // Random 4 artikel
             $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
                 ->inRandomOrder()
@@ -88,17 +82,14 @@ class ArtikelController extends Controller
 
 
     /**
-     * @OA\Get(
-     *     path="/api/artikel/home",
-     *     summary="Get latest 4 published articles for homepage",
-     *     tags={"Artikel"}
-     * )
+     * Mengambil 4 artikel terbaru untuk halaman home
      */
     public function homeArtikel(): JsonResponse
     {
         $headers = $this->getCorsHeaders();
 
         try {
+            // Artikel terbaru, max 4
             $artikels = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
                 ->with('kategori_artikel','user')
@@ -120,17 +111,14 @@ class ArtikelController extends Controller
 
 
     /**
-     * @OA\Get(
-     *     path="/api/artikel/random",
-     *     summary="Get 3 random published articles",
-     *     tags={"Artikel"}
-     * )
+     * Mengambil 3 artikel acak yang sudah dipublikasikan
      */
     public function getRandomArtikel(): JsonResponse
     {
         $headers = $this->getCorsHeaders();
 
         try {
+            // Random artikel
             $trendingArtikel = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
                 ->where('is_published', true)
@@ -152,11 +140,10 @@ class ArtikelController extends Controller
 
 
     /**
-     * @OA\Get(
-     *     path="/api/artikel/trending",
-     *     summary="Get top 10 trending articles monthly or fallback yearly/all time",
-     *     tags={"Artikel"}
-     * )
+     * Mendapatkan top 10 trending artikel:
+     * - Prioritas trending bulan ini
+     * - Jika kosong → trending tahun ini
+     * - Jika tetap kosong → trending sepanjang masa
      */
     public function getTrendingMonthlyArtikel(): JsonResponse
     {
@@ -167,19 +154,37 @@ class ArtikelController extends Controller
             $oneMonthAgo = $now->clone()->subMonth();
             $year = $now->year;
 
+            // 🔥 Query dasar untuk reusable
+            $baseQuery = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
+                ->withoutTrashed()
+                ->with('kategori_artikel','user')
+                ->where('is_published', 1)
+                ->orderBy('views', 'desc');
+
             // 1️⃣ Trending 1 bulan terakhir
-            $artikel = Artikel::trendingSince($oneMonthAgo)->limit(10)->get();
+            $artikel = (clone $baseQuery)
+                ->where('created_at', '>=', $oneMonthAgo)
+                ->limit(10)
+                ->get();
+
             $message = 'Trending bulan ini';
 
-            // 2️⃣ Fallback ke trending tahun berjalan
+            // 2️⃣ Backup trending tahun ini
             if ($artikel->isEmpty()) {
-                $artikel = Artikel::trendingThisYear($year)->limit(10)->get();
+                $artikel = (clone $baseQuery)
+                    ->whereYear('created_at', $year)
+                    ->limit(10)
+                    ->get();
+
                 $message = 'Trending tahun ini';
             }
 
-            // 3️⃣ Fallback ke all-time trending
+            // 3️⃣ Backup trending sepanjang masa
             if ($artikel->isEmpty()) {
-                $artikel = Artikel::trendingAll()->limit(10)->get();
+                $artikel = (clone $baseQuery)
+                    ->limit(10)
+                    ->get();
+
                 $message = 'Trending sepanjang masa';
             }
 
@@ -194,28 +199,23 @@ class ArtikelController extends Controller
         }
     }
 
-
     /**
-     * @OA\Get(
-     *     path="/api/artikel/{slug}",
-     *     summary="Show article detail",
-     *     tags={"Artikel"},
-     *     @OA\Parameter(
-     *         name="slug", in="path", required=true
-     *     )
-     * )
+     * Menampilkan detail artikel berdasarkan slug
+     * + Menambah jumlah views setiap kali dikunjungi
      */
     public function show($slug): JsonResponse
     {
         $headers = $this->getCorsHeaders();
 
         try {
+            // Ambil detail artikel & relasinya
             $artikel = Artikel::where('slug', $slug)
                 ->where('is_published', 1)
                 ->withoutTrashed()
                 ->with('komentar','kategori_artikel','user')
                 ->firstOrFail();
 
+            // Tambahkan jumlah view untuk tracking
             $artikel->increment('views');
 
             return response()->json([
@@ -230,7 +230,9 @@ class ArtikelController extends Controller
     }
 
 
-    /** Helper Method */
+    /**
+     * Helper untuk membuat response CORS Header
+     */
     private function getCorsHeaders($allowed = null, $origin = null)
     {
         $allowed = $allowed ?? explode(',', $_ENV['VITE_CORS_DOMAINS']);
@@ -243,6 +245,9 @@ class ArtikelController extends Controller
         ];
     }
 
+    /**
+     * Helper respon error standar server
+     */
     private function errorResponse($e, $headers, $status = 500)
     {
         return response()->json([

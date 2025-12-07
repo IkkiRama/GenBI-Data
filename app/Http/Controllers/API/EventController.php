@@ -10,6 +10,10 @@ use Illuminate\Http\JsonResponse;
 class EventController extends Controller
 {
     /**
+     * Menampilkan semua event secara berurutan berdasarkan tanggal terdekat.
+     *
+     * Digunakan untuk halaman daftar event pada frontend.
+     *
      * @OA\Get(
      *     path="/api/event",
      *     summary="Get all events ordered by date",
@@ -23,10 +27,12 @@ class EventController extends Controller
         $headers = $this->getCorsHeaders();
 
         try {
+            // Mengambil semua event yang belum dihapus dan urut berdasarkan tanggal terdekat
             $events = Event::orderBy('tanggal', 'asc')
                 ->withoutTrashed()
                 ->get();
 
+            // Cek jika data kosong
             if ($events->isEmpty()) {
                 return response()->json([
                     "success" => false,
@@ -48,6 +54,9 @@ class EventController extends Controller
 
 
     /**
+     * Menampilkan maksimal 3 event yang akan datang untuk homepage.
+     * Jika tidak ada event mendatang → tampilkan 3 event terakhir yang sudah lewat.
+     *
      * @OA\Get(
      *     path="/api/event/home",
      *     summary="Get 3 upcoming events for homepage (fallback recent past events)",
@@ -59,12 +68,14 @@ class EventController extends Controller
         $headers = $this->getCorsHeaders();
 
         try {
+            // Ambil event mendatang
             $events = Event::where('tanggal', '>=', now())
                 ->orderBy('tanggal', 'asc')
                 ->take(3)
                 ->withoutTrashed()
                 ->get();
 
+            // Jika tidak ada event mendatang → ambil event yang sudah lewat
             if ($events->isEmpty()) {
                 $events = Event::where('tanggal', '<', now())
                     ->orderBy('tanggal', 'desc')
@@ -88,6 +99,8 @@ class EventController extends Controller
 
 
     /**
+     * Menampilkan 3 event rekomendasi secara acak.
+     *
      * @OA\Get(
      *     path="/api/event/rekomendasi",
      *     summary="Get recommended random events",
@@ -99,12 +112,14 @@ class EventController extends Controller
         $headers = $this->getCorsHeaders();
 
         try {
+            // Pilih 3 event mendatang secara acak
             $events = Event::where('tanggal', '>=', now())
                 ->inRandomOrder()
                 ->take(3)
                 ->withoutTrashed()
                 ->get();
 
+            // Jika tidak ada event mendatang → ambil acak semua event
             if ($events->isEmpty()) {
                 $events = Event::inRandomOrder()
                     ->take(3)
@@ -125,6 +140,12 @@ class EventController extends Controller
 
 
     /**
+     * Menampilkan detail satu event berdasarkan slug.
+     *
+     * Data juga dilengkapi dengan relasi pemateri.
+     *
+     * @param string $slug
+     *
      * @OA\Get(
      *     path="/api/event/{slug}",
      *     summary="Get event detail by slug",
@@ -137,6 +158,7 @@ class EventController extends Controller
         $headers = $this->getCorsHeaders();
 
         try {
+            // Ambil detail event dengan relasi pemateri
             $event = Event::where('slug', $slug)
                 ->with('pemateri')
                 ->first();
@@ -162,7 +184,7 @@ class EventController extends Controller
 
 
     /**
-     * Helper: CORS Header
+     * Helper untuk validasi CORS Header.
      */
     private function getCorsHeaders()
     {
@@ -179,7 +201,9 @@ class EventController extends Controller
     }
 
     /**
-     * Helper: Standardized Error Response
+     * Helper: Response Error Standarisasi
+     *
+     * Mengembalikan response error yang seragam untuk memudahkan debugging.
      */
     private function errorResponse($exception, $headers)
     {
