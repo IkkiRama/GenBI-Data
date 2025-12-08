@@ -127,6 +127,42 @@ class ArtikelController extends Controller
         }
     }
 
+    /**
+     * Mengambil 4 artikel terbaru untuk halaman home
+     */
+    public function artikelTerbaruDetailArtikel(): JsonResponse
+    {
+        // Ambil domain asal request (untuk keperluan CORS)
+        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // Set header CORS
+        $headers = $this->getCorsHeaders($allowedDomains, $origin);
+
+        try {
+            // Artikel terbaru, max 3
+            $artikels = Artikel::select('title','views','slug','thumbnail','published_at','author_id','kategori_id')
+                ->withoutTrashed()
+                ->with([
+                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
+                    'user:id,name'                     // ambil hanya id, name
+                ])
+                ->where('is_published', 1)
+                ->latest()
+                ->limit(3)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $artikels,
+                'message' => 'Artikel terbaru berhasil diambil.'
+            ], 200, $headers);
+
+        } catch (\Exception $e) {
+            return $this->errorResponse($e, $headers);
+        }
+    }
+
 
     /**
      * Mengambil 3 artikel acak yang sudah dipublikasikan

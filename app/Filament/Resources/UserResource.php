@@ -35,6 +35,7 @@ class UserResource extends Resource
                     ->required()
                     ->maxLength(255),
                 Forms\Components\Textarea::make('deskripsi')
+                    ->maxLength(150)
                     ->columnSpanFull(),
                 Forms\Components\FileUpload::make('foto')
                     ->disk('public')

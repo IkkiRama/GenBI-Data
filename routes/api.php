@@ -31,6 +31,7 @@ Route::get('/artikel', [ArtikelController::class, 'index']);
 Route::get('/artikel/rekomendasi', [ArtikelController::class, 'rekomendasi']);
 Route::get('/artikel/rekomendasi-per-page', [ArtikelController::class, 'getRandomArtikel']);
 Route::get('/artikel/homeArtikel', [ArtikelController::class, 'homeArtikel']);
+Route::get('/artikel/artikelTerbaruDetailArtikel', [ArtikelController::class, 'artikelTerbaruDetailArtikel']);
 Route::get('/artikel/trending-monthly', [ArtikelController::class, 'getTrendingMonthlyArtikel']);
 Route::get('/artikel/{slug}', [ArtikelController::class, 'show']);
 
