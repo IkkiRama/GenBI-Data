@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Mohamedsabil83\FilamentFormsTinyeditor\Components\TinyEditor;
 
 class StrukturResource extends Resource
 {
@@ -62,6 +63,9 @@ class StrukturResource extends Resource
                     ->directory('struktur'),
                 Forms\Components\Textarea::make('quote')
                     ->columnSpanFull(),
+                TinyEditor::make('deskripsi')
+                    ->required()
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -71,7 +75,11 @@ class StrukturResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nama_lengkap')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('type'),
+                Tables\Columns\TextColumn::make('type')
+                    ->badge()
+                    ->label('Tipe'),
+                Tables\Columns\TextColumn::make('periode')
+                    ->label('Periode'),
                 Tables\Columns\TextColumn::make('jabatan')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('periode')

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('sotms', function (Blueprint $table) {
             $table->id();
             $table->enum('jenis', ['deputi', 'staff']);
+            $table->string('periode');
             $table->string('image');
             $table->timestamps();
             $table->softDeletes();

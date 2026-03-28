@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PodcastResource\Pages;
-use App\Filament\Resources\PodcastResource\RelationManagers;
 use App\Models\Podcast;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,6 +11,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Set;
+use Illuminate\Support\Str;
 
 class PodcastResource extends Resource
 {
@@ -31,6 +32,12 @@ class PodcastResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('title')
                     ->required()
+                    ->maxLength(255)
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))),
+                Forms\Components\TextInput::make('slug')
+                    ->readOnly()
+                    ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('videoId')
                     ->required()
@@ -38,8 +45,12 @@ class PodcastResource extends Resource
                 Forms\Components\TextInput::make('youtubeUrl')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('date')
-                    ->numeric()
+                Forms\Components\DatePicker::make('date')
+                    ->required(),
+                Forms\Components\FileUpload::make('thumbnail')
+                    ->disk('public')
+                    ->image()
+                    ->directory('podcast')
                     ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required()
@@ -54,6 +65,8 @@ class PodcastResource extends Resource
                 Tables\Columns\TextColumn::make('title')
                     ->sortable()
                     ->searchable(),
+                Tables\Columns\ImageColumn::make('thumbnail')
+                    ->label('Thumbnail'),
                 Tables\Columns\TextColumn::make('date')
                     ->searchable()
                     ->sortable(),

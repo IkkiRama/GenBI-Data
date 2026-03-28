@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('periode', 255)->nullable();
             $table->string('universitas', 255);
             $table->text('quote')->nullable();
+            $table->text('deskripsi');
             $table->string('foto')->nullable();
             $table->timestamps();
             $table->softDeletes();

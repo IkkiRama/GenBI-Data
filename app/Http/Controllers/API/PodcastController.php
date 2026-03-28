@@ -87,4 +87,87 @@ class PodcastController extends Controller
             ], 500, $headers); // Kode 500 artinya: kesalahan pada server
         }
     }
+
+    public function show($slug)
+    {
+        // ===== CORS (pakai style kamu) =====
+        $allowedDomains = explode(',', env('VITE_CORS_DOMAINS'));
+        $origin = request()->headers->get('Origin');
+
+        if (!in_array($origin, $allowedDomains)) {
+            $origin = 'null';
+        }
+
+        $headers = [
+            'Access-Control-Allow-Origin' => $origin,
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+            'Content-Type' => 'application/json',
+        ];
+
+        try {
+
+            // ===== GET PODCAST =====
+            $podcast = Podcast::where('slug', $slug)->first();
+
+            if (!$podcast) {
+                return response()->json([
+                    "success" => false,
+                    "data" => null,
+                    "message" => "Podcast tidak ditemukan"
+                ], 404, $headers);
+            }
+
+            // ===== AI REKOMENDASI (simple smart) =====
+            $keywords = explode(' ', strtolower($podcast->title));
+
+            $query = Podcast::query()
+                ->where('id', '!=', $podcast->id);
+
+            foreach ($keywords as $word) {
+                $query->orWhere('title', 'like', "%$word%");
+            }
+
+            $recommendations = $query
+                ->latest()
+                ->limit(6)
+                ->get();
+
+            // ===== RESPONSE =====
+            return response()->json([
+                "success" => true,
+                "data" => [
+                    "id" => $podcast->id,
+                    "title" => $podcast->title,
+                    "slug" => $podcast->slug,
+                    "videoId" => $podcast->videoId,
+                    "youtubeUrl" => $podcast->youtubeUrl,
+                    "date" => $podcast->date,
+                    "thumbnail" => $podcast->thumbnail,
+                    "description" => $podcast->description,
+                ],
+                "recommendations" => $recommendations->map(function ($item) {
+                    return [
+                        "id" => $item->id,
+                        "title" => $item->title,
+                        "slug" => $item->slug,
+                        "videoId" => $item->videoId,
+                        "thumbnail" => $item->thumbnail,
+                        "date" => $item->date,
+                    ];
+                }),
+                "message" => "Detail podcast berhasil diambil"
+            ], 200, $headers);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                "success" => false,
+                "data" => null,
+                "message" => "Error: " . $e->getMessage()
+            ], 500, $headers);
+        }
+    }
+
+
+
 }

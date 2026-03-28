@@ -34,6 +34,7 @@ Route::get('/artikel/homeArtikel', [ArtikelController::class, 'homeArtikel']);
 Route::get('/artikel/artikelTerbaruDetailArtikel', [ArtikelController::class, 'artikelTerbaruDetailArtikel']);
 Route::get('/artikel/trending-monthly', [ArtikelController::class, 'getTrendingMonthlyArtikel']);
 Route::get('/artikel/{slug}', [ArtikelController::class, 'show']);
+Route::get('/artikel/kategori/{slug}', [ArtikelController::class, 'byKategori']);
 
 Route::get('/kategori-artikel', [KategoriArtikelController::class, 'index']);
 Route::get('/kategori-artikel/{slug}', [KategoriArtikelController::class, 'show']);
@@ -44,6 +45,7 @@ Route::get('/struktur/{periode}', [StrukturController::class, 'sejarahPerKepengu
 Route::get('/struktur/{periode}/{jabatan}', [StrukturController::class, 'show']);
 
 Route::get('/podcast', [PodcastController::class, 'index']);
+Route::get('/podcast/{slug}', [PodcastController::class, 'show']);
 
 Route::get('/event', [EventController::class, 'index']);
 Route::get('/event/homeEvent', [EventController::class, 'homeEvent']);
@@ -55,6 +57,7 @@ Route::get('/galeri', [GaleriController::class, 'index']);
 Route::get('/galeri/{slug}', [GaleriController::class, 'show']);
 
 Route::get('/sotm', [SOTMController::class, 'index']);
+Route::get('/sotm/{periode}', [SOTMController::class, 'byPeriode']);
 
 Route::post('/kontak', [KontakController::class, 'store']);
 Route::post('/komen', [KomentarController::class, 'store']);

@@ -36,11 +36,18 @@ class SOTMResource extends Resource
                     ])
                     ->preload()
                     ->required(),
+
+                Forms\Components\TextInput::make('periode')
+                    ->required()
+                    ->maxLength(255)
+                    ->placeholder('Contoh: 2025-2026'),
+
                 Forms\Components\FileUpload::make('image')
                     ->disk('public')
                     ->required()
                     ->image()
-                    ->directory('sotm'),
+                    ->directory('sotm')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -51,6 +58,9 @@ class SOTMResource extends Resource
                 Tables\Columns\TextColumn::make('jenis')
                     ->badge()
                     ->label("Jenis SOTM")
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('periode')
+                    ->label('Periode')
                     ->searchable(),
                 Tables\Columns\ImageColumn::make('image'),
             ])

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Artikel;
+use App\Models\KategoriArtikel;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -339,6 +340,83 @@ class ArtikelController extends Controller
             'Access-Control-Allow-Origin' => $origin,
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
         ];
+    }
+
+
+    public function byKategori(Request $request, $slug)
+    {
+        $allowedDomains = explode(',', env('VITE_CORS_DOMAINS'));
+        $origin = request()->headers->get('Origin');
+
+        if (!in_array($origin, $allowedDomains)) {
+            $origin = 'null';
+        }
+
+        $headers = [
+            'Access-Control-Allow-Origin' => $origin,
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+            'Content-Type' => 'application/json',
+        ];
+
+        try {
+            // ambil kategori
+            $kategori = KategoriArtikel::where('slug', $slug)->first();
+
+            if (!$kategori) {
+                return response()->json([
+                    "success" => false,
+                    "message" => "Kategori tidak ditemukan",
+                    "data" => null
+                ], 404, $headers);
+            }
+
+            // query artikel
+            $query = Artikel::where('kategori_id', $kategori->id)
+                ->where('is_published', true);
+
+            // 🔍 search
+            if ($request->search) {
+                $query->where(function ($q) use ($request) {
+                    $q->where('title', 'like', '%' . $request->search . '%')
+                    ->orWhere('keyword', 'like', '%' . $request->search . '%');
+                });
+            }
+
+            // 🔥 filter keyword (tag style)
+            if ($request->keyword) {
+                $query->where('keyword', 'like', '%' . $request->keyword . '%');
+            }
+
+            // sorting terbaru
+            $query->orderBy('published_at', 'desc');
+
+            // pagination (infinite scroll)
+            $artikels = $query->paginate(6);
+
+            // 🔥 inject badge NEW (<= 7 hari)
+            $artikels->getCollection()->transform(function ($item) {
+                $item->is_new = now()->diffInDays($item->published_at) <= 7;
+                return $item;
+            });
+
+            return response()->json([
+                "success" => true,
+                "kategori" => $kategori,
+                "data" => $artikels->items(),
+                "meta" => [
+                    "current_page" => $artikels->currentPage(),
+                    "last_page" => $artikels->lastPage(),
+                    "has_more" => $artikels->hasMorePages()
+                ]
+            ], 200, $headers);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                "success" => false,
+                "message" => $e->getMessage(),
+                "data" => null
+            ], 500, $headers);
+        }
     }
 
 

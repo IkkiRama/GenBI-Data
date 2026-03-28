@@ -10,32 +10,13 @@ class SOTMController extends Controller
 
     public function index()
     {
-        /**
-         * Ambil daftar domain yang diizinkan untuk akses API dari file .env
-         * Bisa berbentuk string dipisahkan koma → lalu kita jadikan array
-         * Contoh ENV: VITE_CORS_DOMAINS="https://domain.com,https://localhost:3000"
-         */
         $allowedDomains = explode(',', env('VITE_CORS_DOMAINS'));
-
-        /**
-         * Ambil origin dari request header → domain frontend yang request API
-         */
         $origin = request()->headers->get('Origin');
 
-        /**
-         * Validasi apakah origin tersebut ada di daftar domain yang diizinkan
-         * Jika tidak cocok, set origin ke 'null' agar request tetap ditolak oleh CORS
-         */
         if (!in_array($origin, $allowedDomains)) {
             $origin = 'null';
         }
 
-        /**
-         * Header CORS yang akan kita sertakan dalam response
-         * - Mengizinkan domain tertentu (security)
-         * - Menentukan allowed headers
-         * - Menentukan respon berupa JSON
-         */
         $headers = [
             'Access-Control-Allow-Origin' => $origin,
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
@@ -43,14 +24,31 @@ class SOTMController extends Controller
         ];
 
         try {
-            /**
-             * Ambil semua data SOTM yang belum di soft-delete
-             */
-            $sotm = SOTM::withoutTrashed()->get();
+            // Tentuin periode sekarang & tahun lalu
+            $currentYear = date('Y');
+            $currentPeriode = $currentYear . '-' . ($currentYear + 1);
+            $lastPeriode = ($currentYear - 1) . '-' . $currentYear;
 
-            /**
-             * Jika tidak ada data, berikan response 404 not found
-             */
+            // 1️⃣ Coba ambil periode sekarang
+            $sotm = SOTM::where('periode', $currentPeriode)->get();
+
+            // 2️⃣ Kalau kosong → ambil tahun lalu
+            if ($sotm->isEmpty()) {
+                $sotm = SOTM::where('periode', $lastPeriode)->get();
+            }
+
+            // 3️⃣ Kalau masih kosong → ambil periode terakhir di DB
+            if ($sotm->isEmpty()) {
+                $latestPeriode = SOTM::select('periode')
+                    ->orderByDesc('periode')
+                    ->first();
+
+                if ($latestPeriode) {
+                    $sotm = SOTM::where('periode', $latestPeriode->periode)->get();
+                }
+            }
+
+            // ❌ Kalau tetap kosong
             if ($sotm->isEmpty()) {
                 return response()->json([
                     "success" => false,
@@ -59,9 +57,12 @@ class SOTMController extends Controller
                 ], 404, $headers);
             }
 
-            /**
-             * Jika data ada → kirimkan respons sukses dengan data
-             */
+            // ✅ Transform image biar langsung bisa dipakai frontend
+            $sotm->transform(function ($item) {
+                $item->image_url = asset('storage/' . $item->image);
+                return $item;
+            });
+
             return response()->json([
                 "success" => true,
                 "data" => $sotm,
@@ -69,16 +70,32 @@ class SOTMController extends Controller
             ], 200, $headers);
 
         } catch (\Exception $e) {
-
-            /**
-             * Jika ada error server yang tidak terduga
-             * Kirim status 500 → Internal Server Error
-             */
             return response()->json([
                 "success" => false,
                 "data" => null,
                 "message" => "Error: " . $e->getMessage()
             ], 500, $headers);
+        }
+    }
+
+    public function byPeriode($periode)
+    {
+        try {
+            $data = SOTM::query()
+                ->where('periode', $periode)
+                ->latest()
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $data
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil data SOTM',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('podcasts', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('slug')->unique(); // URL-friendly slug
             $table->string('videoId');
             $table->string('youtubeUrl');
             $table->integer('date');
+            $table->string('thumbnail');
             $table->text('description');
             $table->timestamps();
             $table->softDeletes();

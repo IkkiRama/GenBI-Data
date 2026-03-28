@@ -3,9 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Struktur;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Hash;
-use Maatwebsite\Excel\Concerns\ToCollection;
+
 use Maatwebsite\Excel\Concerns\ToModel;
 
 class ImportStruktur implements ToModel
@@ -20,6 +18,7 @@ class ImportStruktur implements ToModel
             'universitas' => $row[4],
             'quote' => $row[5],
             'foto' => $row[6],
+            'deskripsi_bidang' => $row[7],
         ]);
     }
 }
