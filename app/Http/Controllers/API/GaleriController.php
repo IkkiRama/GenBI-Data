@@ -4,7 +4,6 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Galeri;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class GaleriController extends Controller
@@ -19,22 +18,17 @@ class GaleriController extends Controller
      */
     private function corsHeaders(): array
     {
-        // Mengambil daftar domain yang diizinkan dari konfigurasi environment
-        $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
+        $allowedDomains = explode(',', env('VITE_CORS_DOMAINS'));
+        $origin = request()->headers->get('Origin');
 
-        // Mengambil origin dari header request client
-        $origin = request()->header('Origin');
-
-        // Jika origin tidak cocok → tolak akses
         if (!in_array($origin, $allowedDomains)) {
-            abort(403, 'Origin tidak diizinkan.');
+            $origin = 'null';
         }
 
-        // Jika valid → berikan akses
         return [
-            'Content-Type' => 'application/json',
             'Access-Control-Allow-Origin' => $origin,
             'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+            'Content-Type' => 'application/json',
         ];
     }
 

@@ -1,28 +1,21 @@
 <?php
 
 use App\Http\Controllers\API\ArtikelController;
-use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\DeveloperController;
 use App\Http\Controllers\API\GaleriController;
 use App\Http\Controllers\API\KategoriArtikelController;
 use App\Http\Controllers\API\KontakController;
 use App\Http\Controllers\API\PodcastController;
 use App\Http\Controllers\API\SOTMController;
 use App\Http\Controllers\API\StrukturController;
-use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\EventController;
+use App\Http\Controllers\API\QuizController;
+use App\Http\Controllers\API\SearchController;
+use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
-
-Route::group(["middleware" => "auth:sanctum"], function() {
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::resource('user', UserController::class);
-});
 
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
@@ -59,10 +52,27 @@ Route::get('/galeri/{slug}', [GaleriController::class, 'show']);
 Route::get('/sotm', [SOTMController::class, 'index']);
 Route::get('/sotm/{periode}', [SOTMController::class, 'byPeriode']);
 
+
+Route::get('/developer', [DeveloperController::class, 'index']);
+Route::get('/search', [SearchController::class, 'index']);
+
+Route::get('/kuis', [QuizController::class, 'index']);
+Route::get('/kuis/{uuid}', [QuizController::class, 'start']);
+
 Route::post('/kontak', [KontakController::class, 'store']);
 Route::post('/komen', [KomentarController::class, 'store']);
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return response()->json([
+        'success' => true,
+        'data' => $request->user()
+    ]);
+});
 
+Route::post('/logout', function (Request $request) {
+    $request->user()->currentAccessToken()->delete();
 
+    return response()->json(['success' => true]);
+})->middleware('auth:sanctum');

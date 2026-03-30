@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('strukturs', function (Blueprint $table) {
             $table->id();
             $table->string('nama_lengkap', 255);
-            $table->enum('type', ['president', 'secretary', 'treasure', 'deputy']);
+            $table->enum('type', ['korkom','president', 'secretary', 'treasure', 'deputy']);
             $table->string('jabatan', 255);
             $table->string('periode', 255)->nullable();
             $table->string('universitas', 255);

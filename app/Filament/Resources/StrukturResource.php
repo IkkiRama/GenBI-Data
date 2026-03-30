@@ -37,6 +37,7 @@ class StrukturResource extends Resource
                 Forms\Components\Select::make('type')
                     ->required()
                     ->options([
+                        "korkom" => "Koordinator Komisariat",
                         "president" => "Presiden",
                         "secretary" => "Sekretaris",
                         "treasure" => "Bendahara",
@@ -64,7 +65,6 @@ class StrukturResource extends Resource
                 Forms\Components\Textarea::make('quote')
                     ->columnSpanFull(),
                 TinyEditor::make('deskripsi')
-                    ->required()
                     ->columnSpanFull(),
             ]);
     }

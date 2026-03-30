@@ -18,11 +18,6 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens;
 
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return true;
-    }
-
     /**
      * The attributes that are mass assignable.
      *
@@ -51,6 +46,11 @@ class User extends Authenticatable implements FilamentUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return true;
     }
 
     public function artikel(): HasMany
