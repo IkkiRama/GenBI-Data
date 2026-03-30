@@ -71,8 +71,16 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     ]);
 });
 
-Route::post('/logout', function (Request $request) {
-    $request->user()->currentAccessToken()->delete();
+// Route::post('/logout', function (Request $request) {
+//     $request->user()->currentAccessToken()->delete();
 
-    return response()->json(['success' => true]);
-})->middleware('auth:sanctum');
+//     return response()->json(['success' => true]);
+// })->middleware('auth:sanctum');
+
+
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    return response()->json($request->user());
+});
+
+
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');

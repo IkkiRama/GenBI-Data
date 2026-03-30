@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
@@ -30,18 +31,11 @@ class AuthController extends Controller
                 ]
             );
 
-             // Login user ke session Laravel
-            Auth::login($user);
+            //CREATE TOKEN
+            $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Optional: simpan data tambahan di session jika mau
-            Session::put('google_user', [
-                'name' => $user->name,
-                'email' => $user->email,
-                'avatar' => $user->foto,
-            ]);
-
-            // Redirect ke frontend tanpa token di URL
-            return redirect(env('FRONTEND_URL') . '/dashboard');
+            //REDIRECT BAWA TOKEN
+            return redirect(env('FRONTEND_URL') . "/auth-success?token=" . $token);
 
         } catch (\Exception $e) {
             return redirect(env('FRONTEND_URL') . '/login?error=google');
@@ -49,15 +43,12 @@ class AuthController extends Controller
     }
 
     // Logout user
-    public function logout()
+    public function logout(Request $request)
     {
-        // Hapus semua session
-        Session::flush();
+        $request->user()->currentAccessToken()->delete();
 
-        // Logout dari Laravel auth
-        Auth::logout();
-
-        // Redirect ke halaman login atau homepage
-        return redirect(env('FRONTEND_URL') . '/login');
+        return response()->json([
+            'message' => 'Logged out'
+        ]);
     }
 }

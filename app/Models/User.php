@@ -16,7 +16,7 @@ use Filament\Models\Contracts\FilamentUser;
 class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens;
+    use HasFactory, Notifiable, HasRoles, SoftDeletes, HasApiTokens, Notifiable;
 
     /**
      * The attributes that are mass assignable.
