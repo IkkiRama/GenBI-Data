@@ -222,7 +222,7 @@ class ArtikelController extends Controller
             $oneMonthAgo = $now->clone()->subMonth();
             $year = $now->year;
 
-            // 🔥 Query dasar untuk reusable
+            //  Query dasar untuk reusable
             $baseQuery = Artikel::select('title','views','slug','thumbnail','excerpt','published_at','author_id','kategori_id')
                 ->withoutTrashed()
                 ->with([
@@ -232,7 +232,7 @@ class ArtikelController extends Controller
                 ->where('is_published', 1)
                 ->orderBy('views', 'desc');
 
-            // 1️⃣ Trending 1 bulan terakhir
+            // Trending 1 bulan terakhir
             $artikel = (clone $baseQuery)
                 ->where('created_at', '>=', $oneMonthAgo)
                 ->limit(10)
@@ -240,7 +240,7 @@ class ArtikelController extends Controller
 
             $message = 'Trending bulan ini';
 
-            // 2️⃣ Backup trending tahun ini
+            // Backup trending tahun ini
             if ($artikel->isEmpty()) {
                 $artikel = (clone $baseQuery)
                     ->whereYear('created_at', $year)
@@ -250,7 +250,7 @@ class ArtikelController extends Controller
                 $message = 'Trending tahun ini';
             }
 
-            // 3️⃣ Backup trending sepanjang masa
+            // Backup trending sepanjang masa
             if ($artikel->isEmpty()) {
                 $artikel = (clone $baseQuery)
                     ->limit(10)
@@ -276,32 +276,93 @@ class ArtikelController extends Controller
      */
     public function show($slug): JsonResponse
     {
-        // Ambil domain asal request (untuk keperluan CORS)
         $allowedDomains = explode(',', $_ENV['VITE_CORS_DOMAINS']);
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-
-        // Set header CORS
         $headers = $this->getCorsHeaders($allowedDomains, $origin);
 
         try {
-            // Ambil detail artikel & relasinya
-            $artikel = Artikel::where('slug', $slug)
+            $artikel = Artikel::query()
+                ->select([
+                    'id',
+                    'kategori_id',
+                    'author_id',
+                    'title',
+                    'slug',
+                    'keyword',
+                    'content',
+                    'thumbnail',
+                    'views',
+                    'created_at',
+                    'updated_at',
+                ])
+                ->where('slug', $slug)
                 ->where('is_published', 1)
                 ->withoutTrashed()
                 ->with([
-                    'komentar:artikel_id,nama,email,komentar',
-                    'kategori_artikel:id,nama,slug',   // ambil hanya id, nama, slug
-                    'user:id,name,deskripsi,email,foto'                     // ambil hanya id, name
-                ]) // join relasi
+                    // KOMENTAR
+                    'komentar' => function ($q) {
+                        $q->select([
+                            'id',
+                            'artikel_id',
+                            'user_id',
+                            'komentar',
+                            'created_at'
+                        ])
+                        ->with('user:id,name')
+                        ->latest();
+                    },
+
+                    // KATEGORI
+                    'kategori_artikel:id,nama,slug',
+
+                    // AUTHOR
+                    'user:id,name,deskripsi,email,foto'
+                ])
                 ->firstOrFail();
 
-            // Tambahkan jumlah view untuk tracking
+            // increment views
             $artikel->increment('views');
 
+            // RESPONSE MAPPING (BIAR RAPIH)
             return response()->json([
                 "success" => true,
-                "data" => $artikel,
-                "message" => "Detail artikel berhasil ditampilkan"
+                "message" => "Detail artikel berhasil ditampilkan",
+                "data" => [
+                    "id" => $artikel->id,
+                    "title" => $artikel->title,
+                    "slug" => $artikel->slug,
+                    "content" => $artikel->content,
+                    "keyword" => $artikel->keyword,
+                    "thumbnail" => $artikel->thumbnail,
+                    "created_at" => $artikel->created_at->format('Y-m-d'),
+                    "updated_at" => $artikel->updated_at->format('Y-m-d'),
+
+                    "kategori" => [
+                        "id" => $artikel->kategori_artikel?->id,
+                        "nama" => $artikel->kategori_artikel?->nama,
+                        "slug" => $artikel->kategori_artikel?->slug,
+                    ],
+
+                    "author" => [
+                        "id" => $artikel->user?->id,
+                        "name" => $artikel->user?->name,
+                        "email" => $artikel->user?->email,
+                        "foto" => $artikel->user?->foto,
+                        "deskripsi" => $artikel->user?->deskripsi,
+                    ],
+
+                    "komentar" => $artikel->komentar->map(function ($item) {
+                        return [
+                            "id" => $item->id,
+                            "komentar" => $item->komentar,
+                            "created_at" => $item->created_at->format('Y-m-d H:i'),
+                            "user" => [
+                                "id" => $item->user?->id,
+                                "name" => $item->user?->name,
+                            ]
+                        ];
+                    })
+                ]
             ], 200, $headers);
 
         } catch (\Exception $e) {
@@ -382,7 +443,7 @@ class ArtikelController extends Controller
                 });
             }
 
-            // 🔥 filter keyword (tag style)
+            // filter keyword (tag style)
             if ($request->keyword) {
                 $query->where('keyword', 'like', '%' . $request->keyword . '%');
             }
@@ -393,7 +454,7 @@ class ArtikelController extends Controller
             // pagination (infinite scroll)
             $artikels = $query->paginate(6);
 
-            // 🔥 inject badge NEW (<= 7 hari)
+            // inject badge NEW (<= 7 hari)
             $artikels->getCollection()->transform(function ($item) {
                 $item->is_new = now()->diffInDays($item->published_at) <= 7;
                 return $item;

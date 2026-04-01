@@ -22,6 +22,7 @@ return new class extends Migration
             $table->text('excerpt')->nullable(); // Cuplikan atau ringkasan artikel (opsional)
             $table->text('keyword')->nullable(); // Cuplikan atau ringkasan artikel (opsional)
             $table->text('content'); // Konten artikel
+            $table->enum('jenis', ['draft','pending','approved','rejected'])->default('draft'); // Status artikel
             $table->boolean('is_published')->default(false); // Status publikasi
             $table->timestamp('published_at')->nullable(); // Tanggal publikasi artikel (opsional)
             $table->timestamps();

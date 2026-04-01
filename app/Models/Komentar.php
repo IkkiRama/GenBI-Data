@@ -16,4 +16,9 @@ class Komentar extends Model
     {
         return $this->belongsTo(Artikel::class, 'artikel_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

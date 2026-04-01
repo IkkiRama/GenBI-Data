@@ -33,13 +33,10 @@ class KomentarResource extends Resource
                     ->relationship('artikel', 'title')
                     ->columnSpanFull()
                     ->required(),
-                Forms\Components\TextInput::make('nama')
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
                     ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('email')
-                    ->email()
-                    ->required()
-                    ->maxLength(255),
+                    ->searchable(),
                 Forms\Components\Textarea::make('komentar')
                     ->required()
                     ->columnSpanFull(),
@@ -53,9 +50,11 @@ class KomentarResource extends Resource
                 Tables\Columns\TextColumn::make('artikel.title')
                     ->numeric()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('nama')
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('User')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('email')
+                Tables\Columns\TextColumn::make('user.email')
+                    ->label('Email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('deleted_at')
                     ->dateTime()

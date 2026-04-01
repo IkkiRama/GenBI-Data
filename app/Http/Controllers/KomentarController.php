@@ -12,29 +12,45 @@ class KomentarController extends Controller
      */
     public function store(Request $request)
     {
-        $headers = [
-            'Content-Type' => 'application/json',
-            'X-Powered-By' => 'Rifki Romadhan',
-            'X-Content-Language' => 'id',
-            'Access-Control-Allow-Origin' => '*',
-            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
-        ];
+        try {
+            $validated = $request->validate([
+                'artikel_id' => 'required|exists:artikels,id',
+                'komentar'   => 'required|string',
+            ]);
 
-        $validated = $request->validate([
-            'artikel_id'  => 'required',
-            'nama'  => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'komentar' => 'required|string',
-        ]);
+            $komentar = Komentar::create([
+                'artikel_id' => $validated['artikel_id'],
+                'user_id'    => auth()->id(),
+                'komentar'   => $validated['komentar'],
+            ]);
 
-        // Simpan data ke dalam database
-        $contact = Komentar::create($validated);
+            return response()->json([
+                'success' => true,
+                'message' => 'Komentar berhasil dikirim',
+                'data' => [
+                    'id' => $komentar->id,
+                    'komentar' => $komentar->komentar,
+                    'created_at' => $komentar->created_at->format('Y-m-d H:i'),
+                    'user' => [
+                        'id' => auth()->user()->id,
+                        'name' => auth()->user()->name,
+                    ]
+                ]
+            ], 201);
 
-        // Kembalikan response
-        return response()->json([
-            'success' => true,
-            'message' => 'Komentar berhasil disimpan.',
-            'data'    => $contact,
-        ], 201, $headers);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+            ], 422);
+
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Server error',
+            ], 500);
+        }
     }
 }

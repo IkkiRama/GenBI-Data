@@ -12,6 +12,7 @@ use App\Http\Controllers\API\EventController;
 use App\Http\Controllers\API\QuizController;
 use App\Http\Controllers\API\SearchController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\KomentarController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Http\Request;
@@ -83,4 +84,23 @@ Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
 });
 
 
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/dashboard/artikel', [DashboardController::class, 'getArtikel']);
+    Route::post('/dashboard/artikel/buat', [DashboardController::class, 'storeArtikel']);
+    Route::get('/dashboard/artikel/edit/{slug}', [DashboardController::class, 'editArtikel']);
+    Route::put('/dashboard/artikel/{id}', [DashboardController::class, 'updateArtikel']);
+    Route::delete('/dashboard/artikel/delete/{slug}', [DashboardController::class, 'destroyArtikel']);
+    Route::get('/dashboard/artikel/komentar', [DashboardController::class, 'getKomentarDashboard']);
+    Route::post('/dashboard/artikel/upload-image', [DashboardController::class, 'uploadImage']);
+
+    Route::get('/dashboard/artikel/komentar', [DashboardController::class, 'komentar']);
+    Route::put('/dashboard/artikel/komentar/{id}', [DashboardController::class, 'updateKomentar']);
+    Route::delete('/dashboard/artikel/komentar/{id}', [DashboardController::class, 'destroyKomentar']);
+
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::put('/dashboard/user/profile', [DashboardController::class, 'updateProfile']);
+});
+
+

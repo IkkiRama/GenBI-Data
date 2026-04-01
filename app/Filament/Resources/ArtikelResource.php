@@ -69,6 +69,16 @@ class ArtikelResource extends Resource
                         Forms\Components\Textarea::make('deskripsi')
                             ->columnSpanFull(),
                     ]),
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'draft' => 'Draft',
+                        'pending' => 'Pending Review',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
+                    ])
+                    ->default('draft')
+                    ->required()
+                    ->native(false),
                 Forms\Components\DateTimePicker::make('published_at')
                     ->default(now())
                     ->readOnly(),
@@ -77,7 +87,8 @@ class ArtikelResource extends Resource
                     ->numeric(),
                 Forms\Components\Toggle::make('is_published')
                     ->required()
-                    ->label("Publikasikan"),
+                    ->label("Publikasikan")
+                    ->columnSpanFull(),
                 Forms\Components\Textarea::make('excerpt')
                     ->required(),
                 Forms\Components\Textarea::make('keyword')
@@ -107,6 +118,14 @@ class ArtikelResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('kategori_artikel.nama')
                     ->sortable(),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->colors([
+                        'secondary' => 'draft',
+                        'warning' => 'pending',
+                        'success' => 'approved',
+                        'danger' => 'rejected',
+                    ]),
                 Tables\Columns\IconColumn::make('is_published')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('published_at')
